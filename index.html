@@ -1,207 +1,180 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>魔法学院 PK 2.0：最强小巫师争霸赛</title>
+  <title>Mystery Thief Chase</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
   <style>
-    :root{
-      --ink:#f8f5ff;
-      --purple:#7c3aed;
-      --deep:#10051f;
-      --gold:#f7d774;
-    }
-    *{box-sizing:border-box}
-    body{
-      font-family:'Noto Sans SC',sans-serif;
-      color:var(--ink);
-      min-height:100vh;
-      overflow-x:hidden;
-      background:
-        radial-gradient(circle at 20% 18%, rgba(168,85,247,.45), transparent 22%),
-        radial-gradient(circle at 80% 12%, rgba(56,189,248,.22), transparent 18%),
-        radial-gradient(circle at 55% 80%, rgba(245,158,11,.18), transparent 25%),
-        linear-gradient(135deg,#080214 0%,#160329 38%,#071527 72%,#1d0b32 100%);
-    }
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #111827;
       background-image:
-        radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 1.5px),
-        radial-gradient(circle, rgba(255,255,255,.35) 0 1px, transparent 1.5px);
-      background-size:64px 64px, 110px 110px;
-      background-position:0 0, 22px 35px;
-      opacity:.45;
-      animation:twinkle 7s linear infinite alternate;
+        radial-gradient(circle at 15% 10%, rgba(59,130,246,.35), transparent 26%),
+        radial-gradient(circle at 85% 15%, rgba(168,85,247,.25), transparent 28%),
+        radial-gradient(circle at 50% 85%, rgba(245,158,11,.20), transparent 32%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 46%, #111827 100%);
+      overflow-y: auto;
+      overflow-x: hidden;
     }
-    @keyframes twinkle{from{opacity:.28}to{opacity:.58}}
-    .arcane-card{
-      background:linear-gradient(180deg,rgba(27,12,55,.94),rgba(10,13,38,.94));
-      border:2px solid rgba(247,215,116,.7);
-      box-shadow:0 0 22px rgba(124,58,237,.35), inset 0 0 18px rgba(255,255,255,.05);
-      backdrop-filter: blur(8px);
+    .modal-content {
+      background: rgba(248,250,252,.96);
+      border: 4px solid #111827;
+      box-shadow: 0 16px 35px rgba(0,0,0,.45);
+      transition: transform .3s ease;
     }
-    .parchment{
-      background:linear-gradient(180deg,#fff8dc,#f5e6b8);
-      color:#2d1603;
-      border:4px solid #8b5a18;
-      box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 0 20px rgba(139,90,24,.25);
+    #game-screen { min-height: 100vh; }
+    #wheel {
+      border-radius: 50%;
+      border: 10px solid #111827;
+      box-shadow: 0 0 24px rgba(255,255,255,.18) inset, 0 0 22px rgba(0,0,0,.45);
+      position: relative;
+      transition: transform 4s cubic-bezier(.25,1,.5,1);
+      width: 100%;
+      height: 100%;
     }
-    #game-screen{min-height:100vh}
-    #wheel{
-      border-radius:50%;
-      border:10px solid rgba(247,215,116,.9);
-      background:conic-gradient(
-        #6d28d9 0deg 80deg,    /* ✦ 魔法书：22.2% */
-        #0891b2 80deg 160deg,   /* ◆ 魔法宝石：22.2% */
-        #f59e0b 160deg 210deg,  /* ★ 魔杖：13.9% */
-        #b91c1c 210deg 275deg,  /* × 龙的挑战：18.1% */
-        #4f46e5 275deg 300deg,  /* □ 魔法护盾：6.9% */
-        #10b981 300deg 360deg   /* ? 咒语卡：16.7% */
-      );
-      box-shadow:0 0 24px rgba(247,215,116,.7), 0 0 60px rgba(124,58,237,.65), inset 0 0 25px rgba(0,0,0,.65);
-      position:relative;
-      transition:transform 4s cubic-bezier(.25,1,.5,1);
-      width:100%;height:100%;
+    .wheel-section-content { position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; }
+    .wheel-symbol {
+      position:absolute; top:50%; left:50%; transform-origin:center;
+      color:#111827; font-weight:900; text-shadow:1px 1px 3px rgba(255,255,255,.6);
     }
-    #wheel::before{
-      content:"";
-      position:absolute;
-      inset:28px;
-      border-radius:50%;
-      border:2px dashed rgba(255,255,255,.55);
-      box-shadow:inset 0 0 20px rgba(255,255,255,.12);
-    }
-    #wheel::after{
-      content:"✦  ✧  ✦  ✧  ✦";
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:rgba(255,255,255,.36);
-      font-size:30px;
-      letter-spacing:12px;
-      transform:rotate(-18deg);
-    }
-    .wheel-section-content{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:2}
-    .wheel-symbol{
-      position:absolute;top:50%;left:50%;transform-origin:center;
-      color:#fff8dc;font-weight:900;
-      text-shadow:0 0 8px rgba(255,255,255,.9),0 0 16px rgba(247,215,116,.8),2px 2px 3px rgba(0,0,0,.7);
-    }
-    #spin-btn{border:4px solid var(--gold);box-shadow:0 6px #5b3b06,0 0 20px rgba(255,255,255,.3);position:relative}
-    #spin-btn:active:not(:disabled){box-shadow:0 2px #5b3b06;transform:translateY(4px)}
-    #spin-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;background:#64748b!important}
+    #spin-btn { border:5px solid #475569; box-shadow:0 6px #334155; position:relative; }
+    #spin-btn:active:not(:disabled){ box-shadow:0 2px #334155; transform:translateY(4px); }
+    #spin-btn:disabled { box-shadow:0 6px #334155; transform:translateY(0); background-color:#9ca3af !important; cursor:not-allowed; }
     #spin-btn::before{
-      content:"";position:absolute;top:-40px;left:50%;transform:translateX(-50%);
-      width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;border-bottom:40px solid #facc15;z-index:30;
-      filter:drop-shadow(0 0 8px rgba(250,204,21,.85));
+      content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+      width:0; height:0; border-left:25px solid transparent; border-right:25px solid transparent;
+      border-bottom:40px solid #ef4444; z-index:30; filter:drop-shadow(2px 2px 2px rgba(0,0,0,.35));
     }
-    .teams-table{width:100%;border-collapse:collapse;background:rgba(17,24,39,.72);border:2px solid rgba(247,215,116,.75);box-shadow:0 0 18px rgba(124,58,237,.38)}
-    .teams-table th,.teams-table td{border:1px solid rgba(247,215,116,.45);padding:8px;text-align:center;vertical-align:middle;color:#fff7ed}
-    .teams-table th{background:rgba(124,58,237,.34);font-weight:900;color:#fde68a}
-    .teams-table .active-col{background:rgba(250,204,21,.15);box-shadow:inset 0 0 14px rgba(250,204,21,.22)}
-    .asset-name{font-weight:900;white-space:nowrap;color:#fde68a!important}
-    .asset-symbol{display:inline-block;min-width:1.2em;font-weight:900;color:#fef3c7}
-    .btn{transition:all .18s ease;box-shadow:0 4px rgba(0,0,0,.4)}
-    .btn:active:not(:disabled){box-shadow:0 2px rgba(0,0,0,.45);transform:translateY(2px)}
-    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-    .glow-title{text-shadow:0 0 10px rgba(250,204,21,.9),0 0 28px rgba(124,58,237,.95)}
-    .spell-badge{display:inline-block;border-radius:999px;padding:2px 8px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.35);font-size:12px;font-weight:900;color:#5b21b6}
+    .teams-table { background:rgba(248,250,252,.94); border:3px solid #334155; border-collapse:collapse; width:100%; box-shadow:5px 5px 12px rgba(0,0,0,.22); }
+    .teams-table th,.teams-table td { border:2px solid #334155; padding:8px; text-align:center; transition:background-color .3s; vertical-align:middle; }
+    .teams-table th { background:rgba(51,65,85,.12); font-weight:900; }
+    .teams-table .asset-name { font-weight:900; font-size:1.02rem; white-space:nowrap; }
+    .teams-table .active-col { background:rgba(59,130,246,.14); box-shadow:inset 0 0 10px rgba(59,130,246,.35); }
+    .btn { transition:all .2s ease; box-shadow:0 4px #777; }
+    .btn:active:not(:disabled){ box-shadow:0 2px #555; transform:translateY(2px); }
+    .btn:disabled { opacity:.48; cursor:not-allowed; box-shadow:0 4px #999; transform:translateY(0); }
+    .asset-symbol { display:inline-block; min-width:1.2em; text-align:center; font-weight:900; }
+    .note-card { background:#fff; border:2px solid #cbd5e1; border-left:6px solid #3b82f6; border-radius:14px; padding:10px 12px; text-align:left; }
+    .evidence-card { border-left-color:#f59e0b; }
+    .tag { display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:900; }
+    .timer-dot { width:14px; height:14px; border-radius:999px; display:inline-block; margin:2px; background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,.65); }
+    .timer-dot.off { background:#334155; box-shadow:none; opacity:.45; }
   </style>
 </head>
 <body class="w-screen flex items-center justify-center p-4">
-  <div id="setup-screen" class="w-full max-w-lg mx-auto text-center relative z-10">
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-amber-200 mb-6 glow-title">魔法学院 PK</h1>
-    <div class="arcane-card p-6 sm:p-8 rounded-3xl">
-      <h2 class="text-2xl sm:text-3xl font-black text-amber-100 mb-3">最强小巫师争霸赛</h2>
-      <p class="text-sm text-violet-100/90 mb-5 leading-relaxed">答对题才能施法，转动魔法阵收集资源。龙会抢夺，咒语卡会触发神秘效果，防护道具概率较低，集齐条件后参加终极魔法考试。</p>
+  <div id="setup-screen" class="w-full max-w-xl mx-auto text-center">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-3">Mystery Thief Chase</h1>
+    <p class="text-blue-100 font-bold mb-6">Find clues. Catch the thief. Save the treasure!</p>
+    <div class="modal-content p-6 sm:p-8 rounded-3xl">
+      <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mb-4">Game Setup</h2>
+      <p class="text-sm text-slate-600 mb-4 leading-relaxed">The real thief is different every game. Answer questions, spin the wheel, collect cards, and start the Final Chase.</p>
       <div class="mb-5 text-left">
-        <label for="team-count" class="block text-lg mb-2 text-amber-100">选择学院数量：</label>
-        <select id="team-count" class="w-full p-3 text-lg border-2 border-amber-300 rounded-xl bg-slate-950 text-amber-100">
+        <label for="team-count" class="block text-lg font-black mb-2 text-slate-700">Number of teams</label>
+        <select id="team-count" class="w-full p-3 text-lg border-2 border-slate-300 rounded-xl bg-white">
           <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
         </select>
       </div>
       <div id="team-names-container" class="space-y-3 mb-6"></div>
-      <div class="rounded-2xl bg-black/25 border border-amber-200/40 p-4 text-left text-sm text-violet-50 mb-6">
-        <div class="font-black text-amber-100 mb-2">胜利条件</div>
-        <div>集齐 <b>✦ 魔法书 x2</b> + <b>★ 魔杖 x1</b> + <b>◆ 魔法宝石 x1</b> 后，参加终极魔法考试。</div>
+      <div class="rounded-2xl bg-slate-100 border border-slate-300 p-4 text-left text-sm text-slate-700 mb-6">
+        <div class="font-black mb-2">How to win</div>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Answer correctly before you spin.</li>
+          <li>Collect: ● Clue x3, ◆ Evidence x2, and ★ Badge x1.</li>
+          <li>Then start the Final Chase: place + thing + person.</li>
+          <li>Wrong answers move the midnight clock down.</li>
+        </ul>
       </div>
-      <button id="start-game-btn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-4 px-4 rounded-2xl text-xl sm:text-2xl btn">开启魔法试炼</button>
+      <button id="start-game-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-4 rounded-2xl text-2xl btn">Start the Case</button>
     </div>
   </div>
 
-  <div id="game-screen" class="hidden w-full max-w-7xl mx-auto flex-col lg:flex-row items-center justify-center gap-8 relative z-10">
-    <div class="w-full lg:w-3/5 flex items-center justify-center">
+  <div id="game-screen" class="hidden w-full max-w-7xl mx-auto flex-col lg:flex-row items-center justify-center gap-8">
+    <div class="w-full lg:w-3/5 flex flex-col items-center justify-center gap-4">
+      <div class="w-full max-w-2xl modal-content rounded-3xl p-4 text-center">
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+          <span class="font-black text-slate-800 text-lg">Midnight Clock</span>
+          <span id="timer-dots"></span>
+          <span id="timer-text" class="font-black text-amber-600"></span>
+        </div>
+      </div>
       <div id="wheel-container" class="relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] flex items-center justify-center mx-auto">
         <div id="wheel"></div>
-        <div class="absolute w-full h-full flex items-center justify-center z-10">
-          <button id="spin-btn" class="w-[108px] h-[108px] sm:w-[130px] sm:h-[130px] rounded-full text-lg sm:text-xl font-black bg-violet-700 hover:bg-violet-800 text-white z-20" disabled>转动<br>魔法阵</button>
+        <div id="wheel-center" class="absolute w-full h-full flex items-center justify-center z-10">
+          <button id="spin-btn" class="w-[105px] h-[105px] sm:w-[125px] sm:h-[125px] rounded-full text-xl sm:text-2xl font-black bg-blue-500 hover:bg-blue-600 text-white z-20" disabled>Find<br>Clues</button>
         </div>
       </div>
     </div>
 
     <div class="w-full lg:w-2/5 flex flex-col gap-5 items-center justify-start">
-      <div class="w-full text-center p-4 rounded-2xl arcane-card">
-        <p id="action-prompt" class="text-xl sm:text-2xl text-amber-50 min-h-[74px] flex items-center justify-center leading-relaxed"></p>
+      <div id="status-bar" class="w-full text-center p-4 rounded-3xl modal-content">
+        <p id="action-prompt" class="text-xl sm:text-2xl text-slate-800 min-h-[76px] flex items-center justify-center leading-relaxed font-bold"></p>
       </div>
       <div id="answer-controls" class="hidden justify-center gap-4 sm:gap-8 w-full">
-        <button id="correct-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">施法成功</button>
-        <button id="incorrect-btn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">咒语失败</button>
+        <button id="correct-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">Correct</button>
+        <button id="incorrect-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">Try Again</button>
       </div>
-      <div id="controls" class="w-full">
-        <button id="start-round-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-4 px-12 rounded-xl text-xl sm:text-2xl btn">开始游戏</button>
+      <div id="controls" class="w-full space-y-3">
+        <button id="start-round-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 px-12 rounded-xl text-xl sm:text-2xl btn">Start Game</button>
       </div>
       <div id="teams-info-container" class="w-full mt-2"></div>
-      <div id="rules-container" class="w-full mt-1 text-center text-violet-100"></div>
-      <button id="back-to-setup-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-xl text-lg btn">返回设置</button>
+      <div id="rules-container" class="w-full mt-1 text-center text-slate-100"></div>
+      <div class="w-full mt-2">
+        <button id="back-to-setup-btn" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-black py-2 px-4 rounded-xl text-lg btn">Back to Setup</button>
+      </div>
     </div>
   </div>
 
-  <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
-    <div id="victory-modal" class="parchment p-8 sm:p-10 rounded-3xl text-center hidden flex-col items-center w-full max-w-md">
-      <h2 class="text-4xl sm:text-5xl font-black text-violet-800 mb-4">魔法考试通过！</h2>
-      <p id="victory-message" class="text-xl sm:text-2xl text-stone-900 mb-8 leading-relaxed"></p>
-      <button onclick="location.reload()" class="bg-violet-700 hover:bg-violet-800 text-white font-black py-3 px-8 rounded-xl text-xl btn">再来一局</button>
+  <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-65 hidden items-center justify-center z-50 p-4">
+    <div id="victory-modal" class="modal-content p-8 sm:p-10 rounded-3xl text-center hidden flex-col items-center w-full max-w-md">
+      <h2 class="text-4xl sm:text-5xl font-black text-yellow-500 mb-4">Case Closed!</h2>
+      <p id="victory-message" class="text-xl sm:text-2xl text-slate-800 mb-8 leading-relaxed font-bold"></p>
+      <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-8 rounded-2xl text-xl btn">Play Again</button>
     </div>
 
-    <div id="steal-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
-      <h2 class="text-3xl font-black text-red-800 mb-4">龙的挑战</h2>
-      <p class="text-lg text-stone-800 mb-5">选择一项资源进行抢夺。若对方有魔法护盾，将自动抵消。</p>
-      <div id="steal-options" class="space-y-3 max-h-72 overflow-y-auto"></div>
+    <div id="steal-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
+      <h2 class="text-2xl sm:text-3xl font-black text-red-700 mb-4">Thief Trouble</h2>
+      <p class="text-lg sm:text-xl text-slate-700 mb-6 font-bold">Choose one team. Take one card.</p>
+      <div id="steal-options" class="space-y-3 mb-2 max-h-60 overflow-y-auto"></div>
     </div>
 
-    <div id="choice-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
-      <h2 id="choice-title" class="text-3xl font-black text-violet-800 mb-4"></h2>
-      <p id="choice-prompt" class="text-lg text-stone-800 mb-5 leading-relaxed"></p>
+    <div id="choice-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
+      <h2 id="choice-title" class="text-2xl sm:text-3xl font-black text-slate-800 mb-4"></h2>
+      <p id="choice-prompt" class="text-lg sm:text-xl text-slate-700 mb-6 leading-relaxed font-bold"></p>
       <div id="choice-options" class="space-y-3 max-h-72 overflow-y-auto"></div>
     </div>
 
-    <div id="spell-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-lg">
-      <h2 class="text-3xl font-black text-violet-800 mb-4">咒语卡</h2>
-      <div id="spell-card-content" class="text-stone-900 mb-6 leading-relaxed"></div>
-      <button id="spell-ok-btn" class="bg-violet-700 hover:bg-violet-800 text-white font-black py-3 px-8 rounded-xl text-lg btn">释放咒语</button>
+    <div id="case-card-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-lg">
+      <h2 class="text-2xl sm:text-3xl font-black text-emerald-700 mb-4">Case Card</h2>
+      <div id="case-card-content" class="text-slate-800 mb-6 leading-relaxed font-bold"></div>
+      <button id="case-card-ok-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-8 rounded-2xl text-lg btn">OK</button>
     </div>
 
-    <div id="final-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-lg">
-      <h2 class="text-3xl font-black text-violet-800 mb-4">终极魔法考试</h2>
-      <p id="final-message" class="text-xl text-stone-900 mb-6 leading-relaxed"></p>
-      <div class="w-full flex flex-col gap-3">
-        <button id="final-success-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-6 rounded-xl text-lg btn">考试通过</button>
-        <button id="final-fail-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 px-6 rounded-xl text-lg btn">考试失败</button>
-        <button id="final-cancel-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-black py-3 px-6 rounded-xl text-lg btn">暂不考试</button>
+    <div id="final-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-2xl">
+      <h2 class="text-3xl font-black text-slate-800 mb-4">Final Chase</h2>
+      <p id="final-message" class="text-xl text-slate-800 mb-5 leading-relaxed font-bold"></p>
+      <div id="final-step-box" class="w-full"></div>
+      <div class="w-full flex flex-col gap-3 mt-5">
+        <button id="final-submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 px-6 rounded-2xl text-lg btn">Submit Final Chase</button>
+        <button id="final-cancel-btn" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-black py-3 px-6 rounded-2xl text-lg btn">Keep Looking</button>
       </div>
+    </div>
+
+    <div id="notebook-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-3xl">
+      <h2 id="notebook-title" class="text-2xl sm:text-3xl font-black text-slate-800 mb-4"></h2>
+      <div id="notebook-summary" class="text-slate-700 mb-4 text-sm font-bold"></div>
+      <div class="w-full grid md:grid-cols-2 gap-4 text-left max-h-[60vh] overflow-y-auto">
+        <div><div class="font-black text-blue-700 mb-2">● Clue Cards</div><div id="notebook-clues" class="space-y-3"></div></div>
+        <div><div class="font-black text-amber-700 mb-2">◆ Evidence Cards</div><div id="notebook-evidence" class="space-y-3"></div></div>
+      </div>
+      <button id="notebook-close-btn" class="mt-6 bg-slate-700 hover:bg-slate-800 text-white font-black py-3 px-8 rounded-2xl text-lg btn">Close Notes</button>
     </div>
   </div>
 
 <script>
-window.onload = function(){
+window.onload = function() {
   const setupScreen = document.getElementById('setup-screen');
   const gameScreen = document.getElementById('game-screen');
   const teamCountSelect = document.getElementById('team-count');
@@ -217,466 +190,594 @@ window.onload = function(){
   const victoryMessage = document.getElementById('victory-message');
   const stealModal = document.getElementById('steal-modal');
   const stealOptions = document.getElementById('steal-options');
-  const choiceModal = document.getElementById('choice-modal');
-  const choiceTitle = document.getElementById('choice-title');
-  const choicePrompt = document.getElementById('choice-prompt');
-  const choiceOptions = document.getElementById('choice-options');
-  const spellModal = document.getElementById('spell-modal');
-  const spellCardContent = document.getElementById('spell-card-content');
-  const spellOkBtn = document.getElementById('spell-ok-btn');
-  const finalModal = document.getElementById('final-modal');
-  const finalMessage = document.getElementById('final-message');
-  const finalSuccessBtn = document.getElementById('final-success-btn');
-  const finalFailBtn = document.getElementById('final-fail-btn');
-  const finalCancelBtn = document.getElementById('final-cancel-btn');
   const answerControls = document.getElementById('answer-controls');
   const correctBtn = document.getElementById('correct-btn');
   const incorrectBtn = document.getElementById('incorrect-btn');
   const rulesContainer = document.getElementById('rules-container');
   const backToSetupBtn = document.getElementById('back-to-setup-btn');
+  const choiceModal = document.getElementById('choice-modal');
+  const choiceTitle = document.getElementById('choice-title');
+  const choicePrompt = document.getElementById('choice-prompt');
+  const choiceOptions = document.getElementById('choice-options');
+  const caseCardModal = document.getElementById('case-card-modal');
+  const caseCardContent = document.getElementById('case-card-content');
+  const caseCardOkBtn = document.getElementById('case-card-ok-btn');
+  const finalModal = document.getElementById('final-modal');
+  const finalMessage = document.getElementById('final-message');
+  const finalStepBox = document.getElementById('final-step-box');
+  const finalSubmitBtn = document.getElementById('final-submit-btn');
+  const finalCancelBtn = document.getElementById('final-cancel-btn');
+  const notebookModal = document.getElementById('notebook-modal');
+  const notebookTitle = document.getElementById('notebook-title');
+  const notebookSummary = document.getElementById('notebook-summary');
+  const notebookClues = document.getElementById('notebook-clues');
+  const notebookEvidence = document.getElementById('notebook-evidence');
+  const timerDots = document.getElementById('timer-dots');
+  const timerText = document.getElementById('timer-text');
 
   let teams = [];
   let currentPlayerIndex = 0;
   let isSpinning = false;
-  let currentWheelRotation = 0;
   let isExtraSpinQuestion = false;
-  let pendingExamTeamIndex = null;
+  let currentWheelRotation = 0;
+  let pendingFinalTeamIndex = null;
+  let trueThief = null;
+  let clueDeck = [];
+  let evidenceDeck = [];
+  let timerMax = 8;
+  let timerLeft = 8;
+  const defaultNames = ['Team Holmes', 'Team Watson', 'Team Conan', 'Team Poirot', 'Team Star', 'Team Eagle'];
 
-  const defaultNames = ['星辰学院','月影学院','火焰学院','森林学院','水晶学院','夜鸦学院'];
+  const suspects = [
+    { name: 'the butler', display: 'The Butler', place: 'kitchen', wear: 'a black hat', item: 'a silver key' },
+    { name: 'the actress', display: 'The Actress', place: 'garden', wear: 'a red scarf', item: 'a perfume bottle' },
+    { name: 'the professor', display: 'The Professor', place: 'study', wear: 'glasses', item: 'a notebook' },
+    { name: 'the chef', display: 'The Chef', place: 'dining room', wear: 'a white apron', item: 'a wooden spoon' }
+  ];
+
   const wheelSections = [
-    {result:'book', symbol:'✦', label:'魔法书', deg:80},      // 22.2%：基础资源，需求量最高
-    {result:'gem', symbol:'◆', label:'魔法宝石', deg:80},    // 22.2%：核心资源，也可兑换
-    {result:'wand', symbol:'★', label:'魔杖', deg:50},       // 13.9%：强力资源，概率中等偏低
-    {result:'dragon', symbol:'×', label:'龙的挑战', deg:65}, // 18.1%：增加PK感
-    {result:'shield', symbol:'□', label:'魔法护盾', deg:25}, // 6.9%：保护道具，避免过多
-    {result:'spell', symbol:'?', label:'咒语卡', deg:60}     // 16.7%：随机事件，保持惊喜
+    { result: 'clue', symbol: '●', label: 'Clue', weight: 30, color: '#93C5FD' },
+    { result: 'evidence', symbol: '◆', label: 'Evidence', weight: 24, color: '#FDE68A' },
+    { result: 'badge', symbol: '★', label: 'Badge', weight: 14, color: '#C4B5FD' },
+    { result: 'thief', symbol: '×', label: 'Trouble', weight: 8, color: '#FCA5A5' },
+    { result: 'shield', symbol: '□', label: 'Shield', weight: 8, color: '#BBF7D0' },
+    { result: 'mystery', symbol: '?', label: 'Case Card', weight: 16, color: '#A7F3D0' }
   ];
 
-  // --- 魔法音效系统 ---
-  const synth = new Tone.Synth({
-    oscillator:{type:'triangle'},
-    envelope:{attack:0.01, decay:0.18, sustain:0.25, release:0.45}
-  }).toDestination();
-  const pluckSynth = new Tone.PluckSynth({attackNoise:0.7, dampening:4200, resonance:0.82}).toDestination();
-  const metalSynth = new Tone.MetalSynth({
-    frequency:180,
-    envelope:{attack:.001,decay:.35,release:.2},
-    harmonicity:4.5,
-    modulationIndex:26,
-    resonance:3500,
-    octaves:1.4
-  }).toDestination();
-  const dragonSynth = new Tone.MembraneSynth({
-    pitchDecay:0.06,
-    octaves:5,
-    oscillator:{type:'sine'},
-    envelope:{attack:0.001, decay:0.55, sustain:0.02, release:0.25}
-  }).toDestination();
-  const magicVolume = new Tone.Volume(-4).toDestination();
-  synth.connect(magicVolume);
-  pluckSynth.connect(magicVolume);
-  metalSynth.connect(magicVolume);
-  dragonSynth.connect(magicVolume);
+  const synth = new Tone.Synth().toDestination();
+  const metalSynth = new Tone.MetalSynth({ frequency:150, envelope:{attack:.001, decay:.4, release:.2}, harmonicity:5.1, modulationIndex:32, resonance:4000, octaves:1.5 }).toDestination();
+  function playSound(note, duration='8n') { try { Tone.start(); synth.triggerAttackRelease(note, duration); } catch(e) {} }
+  function playCoinSound() { try { Tone.start(); metalSynth.triggerAttackRelease('C5','16n',Tone.now()); } catch(e) {} }
 
-  async function unlockAudio(){
-    try{
-      if(Tone.context.state !== 'running') await Tone.start();
-    }catch(e){}
-  }
-  function playSound(note,duration='8n'){
-    try{ unlockAudio(); synth.triggerAttackRelease(note,duration); }catch(e){}
-  }
-  function playMagic(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      metalSynth.triggerAttackRelease('C5','16n',now);
-      pluckSynth.triggerAttackRelease('E5','16n',now+0.08);
-      pluckSynth.triggerAttackRelease('G5','16n',now+0.16);
-    }catch(e){}
-  }
-  function playCorrectSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      ['C5','E5','G5'].forEach((n,i)=>synth.triggerAttackRelease(n,'16n',now+i*0.09));
-    }catch(e){}
-  }
-  function playWrongSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      synth.triggerAttackRelease('C3','8n',now);
-      synth.triggerAttackRelease('G2','8n',now+0.18);
-    }catch(e){}
-  }
-  function playSpinSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      ['C4','D4','E4','G4','A4','C5','A4','G4','E4','D4','C4'].forEach((n,i)=>{
-        pluckSynth.triggerAttackRelease(n,'32n',now+i*0.08);
-      });
-    }catch(e){}
-  }
-  function playSpellSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      ['D5','F5','A5','C6'].forEach((n,i)=>synth.triggerAttackRelease(n,'16n',now+i*0.08));
-      metalSynth.triggerAttackRelease('A4','16n',now+0.22);
-    }catch(e){}
-  }
-  function playShieldSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      synth.triggerAttackRelease('G4','8n',now);
-      synth.triggerAttackRelease('C5','8n',now+0.12);
-      metalSynth.triggerAttackRelease('E5','16n',now+0.2);
-    }catch(e){}
-  }
-  function playDragonSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      dragonSynth.triggerAttackRelease('C2','8n',now);
-      dragonSynth.triggerAttackRelease('G1','8n',now+0.22);
-    }catch(e){}
-  }
-  function playVictorySound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      ['C5','E5','G5','C6','G5','C6'].forEach((n,i)=>synth.triggerAttackRelease(n,'8n',now+i*0.12));
-      metalSynth.triggerAttackRelease('C6','8n',now+0.45);
-    }catch(e){}
-  }
-  function playExamFailSound(){
-    try{
-      unlockAudio();
-      const now=Tone.now();
-      ['A3','F3','D3'].forEach((n,i)=>synth.triggerAttackRelease(n,'8n',now+i*0.12));
-    }catch(e){}
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 
-  function makeTeam(name){return {name,books:0,wands:0,gems:0,shields:0,potions:0,skipTurns:0};}
-  function canTakeExam(t){return t.books>=2 && t.wands>=1 && t.gems>=1;}
-  function labels(){return {books:'魔法书',gems:'魔法宝石',wands:'魔杖',potions:'魔法药水'};}
+  function getWeightedLayout(items) {
+    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+    let currentAngle = 0;
+    return items.map(item => {
+      const startAngle = currentAngle;
+      const angleSize = (item.weight / totalWeight) * 360;
+      currentAngle += angleSize;
+      return { ...item, startAngle, endAngle: currentAngle, midAngle: startAngle + angleSize / 2 };
+    });
+  }
+  function pickWeightedItem(items) {
+    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+    let roll = Math.random() * totalWeight;
+    for (const item of items) { roll -= item.weight; if (roll < 0) return item; }
+    return items[items.length - 1];
+  }
+  function updateWheelBackground() {
+    const layout = getWeightedLayout(wheelSections);
+    wheel.style.background = `conic-gradient(${layout.map(s => `${s.color} ${s.startAngle}deg ${s.endAngle}deg`).join(', ')})`;
+  }
+  function positionWheelSymbols() {
+    wheel.innerHTML = '';
+    updateWheelBackground();
+    const wheelRadius = wheel.offsetWidth / 2;
+    const symbolSize = Math.max(34, wheelRadius * .16);
+    const symbolTranslation = wheelRadius * .65;
+    getWeightedLayout(wheelSections).forEach(section => {
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'wheel-section-content';
+      const transformStyle = `translate(-50%, -50%) rotate(${section.midAngle}deg) translateY(-${symbolTranslation}px) rotate(-${section.midAngle}deg)`;
+      contentDiv.innerHTML = `<span class="wheel-symbol" style="font-size:${symbolSize}px; transform:${transformStyle};">${section.symbol}</span>`;
+      wheel.appendChild(contentDiv);
+    });
+  }
 
-  const spellCards = [
-    {symbol:'L', name:'Lumos 光亮咒', text:'魔法书页自动发光，获得 1 本魔法书。', action:()=>{teams[currentPlayerIndex].books+=1; return true;}},
-    {symbol:'P', name:'Protego 防护咒', text:'召唤防护结界，获得 1 个魔法护盾。', action:()=>{teams[currentPlayerIndex].shields+=1; return true;}},
-    {symbol:'A', name:'Accio 召唤咒', text:'从其他学院召唤 1 个魔法宝石。', action:()=>{chooseTeamToStealGem(); return false;}},
-    {symbol:'W', name:'Wingardium 漂浮咒', text:'再回答一道题，答对后可以额外转动一次魔法阵。', action:()=>{startExtraSpinQuestion(); return false;}},
-    {symbol:'O', name:'Obliviate 遗忘咒', text:'指定一个学院失去 1 本魔法书。', action:()=>{chooseTeamToLoseBook(); return false;}},
-    {symbol:'F', name:'Felix 幸运咒', text:'随机获得 1 个魔法资源。', action:()=>{giveRandomResource(currentPlayerIndex); return true;}},
-    {symbol:'M', name:'Moon Potion 月光药水', text:'获得 1 瓶魔法药水，可在商店兑换资源。', action:()=>{teams[currentPlayerIndex].potions+=1; return true;}}
-  ];
-
-  function updateTeamNameInputs(){
+  function updateTeamNameInputs() {
     const count = parseInt(teamCountSelect.value);
-    teamNamesContainer.innerHTML='';
-    for(let i=0;i<count;i++){
-      const input=document.createElement('input');
-      input.type='text'; input.id=`team-name-${i}`; input.value=defaultNames[i];
-      input.className='w-full p-3 text-lg border-2 border-amber-300 rounded-xl bg-slate-950/80 text-amber-100 placeholder:text-violet-200';
+    teamNamesContainer.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = `team-name-${i}`;
+      input.placeholder = `Team ${i + 1}`;
+      input.value = defaultNames[i];
+      input.className = 'w-full p-3 text-lg border-2 border-slate-300 rounded-xl';
       teamNamesContainer.appendChild(input);
     }
   }
 
-  function setupGame(){
-    const count=parseInt(teamCountSelect.value);
-    teams=[];
-    for(let i=0;i<count;i++){
-      const input=document.getElementById(`team-name-${i}`);
-      teams.push(makeTeam(input.value.trim() || `魔法学院 ${i+1}`));
+  function buildCaseDecks(resetThief=true) {
+    if (resetThief || !trueThief) trueThief = suspects[Math.floor(Math.random() * suspects.length)];
+    const others = suspects.filter(s => s.name !== trueThief.name);
+    const clueCards = [
+      { title:'Place Clue', en:`The thief was near the ${trueThief.place}.`, type:'true' },
+      { title:'Clothes Clue', en:`The thief wore ${trueThief.wear}.`, type:'true' },
+      { title:'Thing Clue', en:`The thief had ${trueThief.item}.`, type:'true' },
+      { title:'Not There', en:`The thief was not near the ${others[0].place}.`, type:'true' },
+      { title:'Not This', en:`The thief did not wear ${others[1].wear}.`, type:'true' },
+      { title:'Not This', en:`The thief did not have ${others[2].item}.`, type:'true' },
+      { title:'After Dinner', en:`Someone saw the thief near the ${trueThief.place} after dinner.`, type:'true' },
+      { title:'Look Clue', en:`The thief looked like someone with ${trueThief.wear}.`, type:'true' },
+      { title:'Thing Clue', en:`A key thing was ${trueThief.item}.`, type:'true' }
+    ];
+    const falseClues = shuffle(others).slice(0,2).map(s => ({ title:'Maybe Clue', en:`Maybe the thief was near the ${s.place}. Are they sure?`, type:'maybe' }));
+    const evidenceCards = [];
+    suspects.forEach(s => {
+      evidenceCards.push(
+        { title:'Person Evidence', en:`${s.display} was near the ${s.place}.` },
+        { title:'Person Evidence', en:`${s.display} wore ${s.wear}.` },
+        { title:'Person Evidence', en:`${s.display} had ${s.item}.` }
+      );
+    });
+    clueDeck = shuffle([...clueCards, ...falseClues]);
+    evidenceDeck = shuffle(evidenceCards);
+  }
+
+  function createTeam(name) {
+    return { name, clues:0, evidence:0, badges:0, shields:0, skipTurns:0, clueNotes:[], evidenceNotes:[] };
+  }
+  function canFinalChase(team) { return team.clues >= 3 && team.evidence >= 2 && team.badges >= 1; }
+  function getAssetCounts(team) { return `●${team.clues} / ◆${team.evidence} / ★${team.badges} / □${team.shields}`; }
+  function drawFromDeck(type) {
+    if (type === 'clue') { if (clueDeck.length === 0) buildCaseDecks(false); return clueDeck.shift(); }
+    if (evidenceDeck.length === 0) buildCaseDecks(false);
+    return evidenceDeck.shift();
+  }
+
+  function startSetupGame() {
+    const count = parseInt(teamCountSelect.value);
+    teams = [];
+    for (let i = 0; i < count; i++) {
+      const nameInput = document.getElementById(`team-name-${i}`);
+      teams.push(createTeam(nameInput.value.trim() || `Team ${i + 1}`));
     }
+    timerMax = count <= 3 ? 8 : 10;
+    timerLeft = timerMax;
+    buildCaseDecks();
+    setupGame();
+  }
+
+  function setupGame() {
     setupScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     gameScreen.classList.add('flex');
-    currentPlayerIndex=-1;
     positionWheelSymbols();
+    currentPlayerIndex = -1;
     updateUI();
-    actionPrompt.textContent='请点击“开始游戏”，开启第一轮魔法试炼！';
-    playSpellSound();
-    rulesContainer.innerHTML='<p class="text-sm font-bold">胜利条件：✦魔法书 x2 + ★魔杖 x1 + ◆宝石 x1，然后参加终极魔法考试。</p><p class="text-xs mt-1">转盘概率：✦22.2% / ◆22.2% / ★13.9% / ×18.1% / □6.9% / ?16.7%。◆x3 可换 ★；◆x2 可换 □；✦x3 可换 ◆；☽x2 可换 ◆。</p>';
+    actionPrompt.textContent = 'Click Start Game to begin the case!';
+    rulesContainer.innerHTML = '<p class="text-sm font-black">Goal: ● Clue x3 + ◆ Evidence x2 + ★ Badge x1, then start Final Chase.</p><p class="text-xs mt-1">Wheel: Clue 30% | Evidence 24% | Badge 14% | Trouble 8% | Shield 8% | Case Card 16%.</p>';
   }
 
-  function positionWheelSymbols(){
-    wheel.innerHTML='';
-    const r=wheel.offsetWidth/2;
-    const size=Math.max(42,r*.20);
-    const trans=r*.66;
-    let startAngle = 0;
-    wheelSections.forEach((section)=>{
-      const angle=startAngle + section.deg / 2;
-      startAngle += section.deg;
-      const div=document.createElement('div');
-      div.className='wheel-section-content';
-      const transform=`translate(-50%, -50%) rotate(${angle}deg) translateY(-${trans}px) rotate(-${angle}deg)`;
-      div.innerHTML=`<span class="wheel-symbol" style="font-size:${size}px; transform:${transform};">${section.symbol}</span>`;
-      wheel.appendChild(div);
-    });
+  function updateTimerUI() {
+    timerDots.innerHTML = '';
+    for (let i = 0; i < timerMax; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'timer-dot' + (i >= timerLeft ? ' off' : '');
+      timerDots.appendChild(dot);
+    }
+    timerText.textContent = `${timerLeft}/${timerMax}`;
   }
 
-  function updateUI(){
-    teamsInfoContainer.innerHTML='';
-    const table=document.createElement('table');
-    table.className='teams-table text-base sm:text-lg';
-    let html='<thead><tr><th>魔法资源</th>';
-    teams.forEach((t,i)=>{html+=`<th class="${i===currentPlayerIndex?'active-col':''}">${t.name}${t.skipTurns>0?' <span class="text-xs text-red-300">暂停</span>':''}</th>`});
-    html+='</tr></thead><tbody>';
-    const rows=[['✦','魔法书','books','/ 2'],['★','魔杖','wands','/ 1'],['◆','魔法宝石','gems','/ 1'],['□','魔法护盾','shields',''],['☽','魔法药水','potions','']];
-    rows.forEach(([sym,name,key,goal])=>{
-      html+=`<tr><td class="asset-name"><span class="asset-symbol">${sym}</span> ${name}</td>`;
-      teams.forEach((t,i)=>{html+=`<td class="${i===currentPlayerIndex?'active-col':''}">${t[key]} ${goal}</td>`});
-      html+='</tr>';
+  function updateUI() {
+    updateTimerUI();
+    teamsInfoContainer.innerHTML = '';
+    const table = document.createElement('table');
+    table.className = 'teams-table text-base sm:text-lg';
+    let headerHtml = '<thead><tr><th class="w-1/4">Case Board</th>';
+    teams.forEach((team, index) => {
+      const skipText = team.skipTurns > 0 ? ' <span class="text-xs text-red-600">Miss Turn</span>' : '';
+      headerHtml += `<th class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.name}${skipText}</th>`;
     });
-    html+='<tr><td class="asset-name">魔法商店</td>';
-    teams.forEach((t,i)=>{
-      html+=`<td class="${i===currentPlayerIndex?'active-col':''}"><div class="flex flex-col gap-2 items-center">
-        <button class="shop-btn bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="gemToWand" ${t.gems<3?'disabled':''}>3◆换1★</button>
-        <button class="shop-btn bg-indigo-500 hover:bg-indigo-600 text-white font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="gemToShield" ${t.gems<2?'disabled':''}>2◆换1□</button>
-        <button class="shop-btn bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="bookToGem" ${t.books<3?'disabled':''}>3✦换1◆</button>
-        <button class="shop-btn bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="potionToGem" ${t.potions<2?'disabled':''}>2☽换1◆</button>
-      </div></td>`;
+    headerHtml += '</tr></thead>';
+    let bodyHtml = '<tbody>';
+    bodyHtml += '<tr><td class="asset-name"><span class="asset-symbol">●</span> Clues</td>';
+    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.clues} / 3</td>`);
+    bodyHtml += '</tr><tr><td class="asset-name"><span class="asset-symbol">◆</span> Evidence</td>';
+    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.evidence} / 2</td>`);
+    bodyHtml += '</tr><tr><td class="asset-name"><span class="asset-symbol">★</span> Badge</td>';
+    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.badges} / 1</td>`);
+    bodyHtml += '</tr><tr><td class="asset-name"><span class="asset-symbol">□</span> Shield</td>';
+    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.shields} / 2</td>`);
+    bodyHtml += '</tr><tr><td class="asset-name">Cards</td>';
+    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">Clue ${team.clueNotes.length}<br>Evidence ${team.evidenceNotes.length}</td>`);
+    bodyHtml += '</tr><tr><td>Actions</td>';
+    teams.forEach((team, index) => {
+      bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">
+        <div class="flex flex-col gap-2 items-center">
+          <button class="notebook-btn bg-slate-700 hover:bg-slate-800 text-white font-black py-1 px-3 rounded-md text-sm btn" data-index="${index}">Case Notes</button>
+          <button class="buy-badge-btn bg-yellow-500 hover:bg-yellow-600 text-white font-black py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${team.evidence < 3 ? 'disabled' : ''}>Trade 3◆ for ★</button>
+          <button class="final-btn bg-red-600 hover:bg-red-700 text-white font-black py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${!canFinalChase(team) ? 'disabled' : ''}>Final Chase</button>
+        </div>
+      </td>`;
     });
-    html+='</tr><tr><td class="asset-name">最终考试</td>';
-    teams.forEach((t,i)=>{
-      html+=`<td class="${i===currentPlayerIndex?'active-col':''}"><button class="exam-btn bg-red-600 hover:bg-red-700 text-white font-black py-2 px-3 rounded-lg text-sm btn" data-index="${i}" ${!canTakeExam(t)?'disabled':''}>参加考试</button></td>`;
-    });
-    html+='</tr></tbody>';
-    table.innerHTML=html;
+    bodyHtml += '</tr></tbody>';
+    table.innerHTML = headerHtml + bodyHtml;
     teamsInfoContainer.appendChild(table);
-    document.querySelectorAll('.shop-btn').forEach(b=>b.addEventListener('click',e=>useShop(parseInt(e.target.dataset.index),e.target.dataset.shop)));
-    document.querySelectorAll('.exam-btn').forEach(b=>b.addEventListener('click',e=>openFinalExam(parseInt(e.target.dataset.index))));
+
+    const suspectBox = document.createElement('div');
+    suspectBox.className = 'mt-4 p-3 rounded-2xl bg-white/85 border-2 border-slate-700 text-center';
+    suspectBox.innerHTML = `<div class="font-black text-slate-800 mb-2">Suspects</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">${suspects.map(s => `<div class="p-2 rounded-xl bg-slate-100 border border-slate-300"><div class="font-black">${s.display}</div><div class="text-xs text-slate-500">${s.place}<br>${s.item}</div></div>`).join('')}</div>`;
+    teamsInfoContainer.appendChild(suspectBox);
+
+    document.querySelectorAll('.buy-badge-btn').forEach(btn => btn.addEventListener('click', e => buyBadge(parseInt(e.currentTarget.dataset.index))));
+    document.querySelectorAll('.final-btn').forEach(btn => btn.addEventListener('click', e => openFinalChase(parseInt(e.currentTarget.dataset.index))));
+    document.querySelectorAll('.notebook-btn').forEach(btn => btn.addEventListener('click', e => openNotebook(parseInt(e.currentTarget.dataset.index))));
   }
 
-  function startNextTurn(){
-    let safety=0;
-    do{
-      currentPlayerIndex=(currentPlayerIndex+1)%teams.length;
+  function showModal(modal) { modalOverlay.style.display = 'flex'; modal.classList.remove('hidden'); modal.classList.add('flex'); }
+  function closeAllModals(hideOverlay=true) {
+    [victoryModal, stealModal, choiceModal, caseCardModal, finalModal, notebookModal].forEach(m => { m.classList.add('hidden'); m.classList.remove('flex'); });
+    if (hideOverlay) modalOverlay.style.display = 'none';
+  }
+
+  function openNotebook(teamIndex) {
+    const team = teams[teamIndex];
+    notebookTitle.textContent = `${team.name}'s Case Notes`;
+    notebookSummary.innerHTML = `Items: ${getAssetCounts(team)}<br>Clue Cards ${team.clueNotes.length}, Evidence Cards ${team.evidenceNotes.length}`;
+    notebookClues.innerHTML = team.clueNotes.length ? team.clueNotes.map((card,i) => `
+      <div class="note-card">
+        <div class="mb-1"><span class="tag bg-blue-100 text-blue-700">Clue ${i+1}</span> <span class="text-slate-500 text-xs">${card.title}</span></div>
+        <div class="font-black">${card.en}</div>
+      </div>`).join('') : '<div class="text-slate-500 text-sm">No clue cards yet.</div>';
+    notebookEvidence.innerHTML = team.evidenceNotes.length ? team.evidenceNotes.map((card,i) => `
+      <div class="note-card evidence-card">
+        <div class="mb-1"><span class="tag bg-amber-100 text-amber-700">Evidence ${i+1}</span> <span class="text-slate-500 text-xs">${card.title}</span></div>
+        <div class="font-black">${card.en}</div>
+      </div>`).join('') : '<div class="text-slate-500 text-sm">No evidence cards yet.</div>';
+    showModal(notebookModal);
+  }
+
+  function startNextTurn() {
+    let safety = 0;
+    do {
+      currentPlayerIndex = (currentPlayerIndex + 1) % teams.length;
       safety++;
-      if(teams[currentPlayerIndex].skipTurns>0){
-        teams[currentPlayerIndex].skipTurns-=1;
-        actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】被黑暗森林困住，暂停一轮！`;
+      if (teams[currentPlayerIndex].skipTurns > 0) {
+        teams[currentPlayerIndex].skipTurns -= 1;
+        actionPrompt.textContent = `${teams[currentPlayerIndex].name} is in the dark room. Miss one turn!`;
         updateUI();
-      }else break;
-    }while(safety<=teams.length+2);
+      } else break;
+    } while (safety <= teams.length + 2);
     updateUI();
-    actionPrompt.textContent=`轮到【${teams[currentPlayerIndex].name}】回答问题，准备施法！`;
-    spinBtn.disabled=true; isSpinning=false;
-    correctBtn.disabled=false; incorrectBtn.disabled=false;
-    answerControls.classList.remove('hidden'); answerControls.classList.add('flex');
+    actionPrompt.textContent = `${teams[currentPlayerIndex].name}, it is your turn. Answer the question first.`;
+    spinBtn.disabled = true;
+    isSpinning = false;
+    correctBtn.disabled = false;
+    incorrectBtn.disabled = false;
+    answerControls.classList.remove('hidden');
+    answerControls.classList.add('flex');
   }
 
-  function getWheelResultByAngle(angle){
-    let current = 0;
-    for (const section of wheelSections) {
-      current += section.deg;
-      if (angle < current) return section;
+  function awardClueCard(teamIndex, silent=false) {
+    const team = teams[teamIndex];
+    const card = drawFromDeck('clue');
+    team.clues += 1;
+    team.clueNotes.push(card);
+    updateUI();
+    if (!silent) actionPrompt.innerHTML = `${team.name} gets one Clue Card!<br><span class="text-base">Open Case Notes to read it.</span>`;
+    playSound('E4');
+    return true;
+  }
+  function awardEvidenceCard(teamIndex, silent=false) {
+    const team = teams[teamIndex];
+    const card = drawFromDeck('evidence');
+    team.evidence += 1;
+    team.evidenceNotes.push(card);
+    updateUI();
+    if (!silent) actionPrompt.innerHTML = `${team.name} gets one Evidence Card!<br><span class="text-base">Open Case Notes to read it.</span>`;
+    playCoinSound();
+    return true;
+  }
+  function addShield(teamIndex) {
+    const team = teams[teamIndex];
+    if (team.shields >= 2) { actionPrompt.textContent = `${team.name} already has two Shield Cards. Get one Clue Card instead!`; return awardClueCard(teamIndex, true); }
+    team.shields += 1; updateUI(); playSound('G5'); return true;
+  }
+
+  function removeRandomCard(team, assetType) {
+    if (assetType === 'clues' && team.clueNotes.length > 0) return team.clueNotes.splice(Math.floor(Math.random()*team.clueNotes.length),1)[0];
+    if (assetType === 'evidence' && team.evidenceNotes.length > 0) return team.evidenceNotes.splice(Math.floor(Math.random()*team.evidenceNotes.length),1)[0];
+    return null;
+  }
+
+  function startExtraSpinQuestion() {
+    isExtraSpinQuestion = true;
+    actionPrompt.textContent = `${teams[currentPlayerIndex].name}, answer one more question. If you are right, spin again!`;
+    answerControls.classList.remove('hidden');
+    answerControls.classList.add('flex');
+    correctBtn.disabled = false;
+    incorrectBtn.disabled = false;
+  }
+
+  const caseCards = [
+    { symbol:'🔦', name:'Flashlight Card', text:'Get one clue card.', weight:24, action:() => awardClueCard(currentPlayerIndex, true) },
+    { symbol:'🐕', name:'Police Dog Card', text:'Get one evidence card.', weight:22, action:() => awardEvidenceCard(currentPlayerIndex, true) },
+    { symbol:'🏃', name:'Fast Chase Card', text:'Answer one more question. If you are right, spin again.', weight:18, action:() => { startExtraSpinQuestion(); return false; } },
+    { symbol:'🌑', name:'Dark Room Card', text:'Choose one team. They miss one turn.', weight:12, action:() => { chooseTeamToSkip(); return false; } },
+    { symbol:'👣', name:'Footprint Card', text:'Look at one clue card from another team.', weight:10, action:() => { chooseTeamToPeek(); return false; } },
+    { symbol:'⭐', name:'Lucky Star Card', text:'Get one badge.', weight:10, action:() => { teams[currentPlayerIndex].badges += 1; playSound('A5'); return true; } },
+    { symbol:'🛡', name:'Shield Card', text:'Get one shield card.', weight:4, action:() => addShield(currentPlayerIndex) }
+  ];
+
+  function handleSpinResult(result) {
+    isSpinning = false;
+    const team = teams[currentPlayerIndex];
+    actionPrompt.innerHTML = `${team.name} gets: <span class="text-3xl sm:text-4xl font-black">${result.symbol}</span> <span class="text-xl">${result.label}</span>`;
+    switch (result.result) {
+      case 'clue': awardClueCard(currentPlayerIndex); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+      case 'evidence': awardEvidenceCard(currentPlayerIndex); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+      case 'badge': team.badges += 1; playSound('A5'); actionPrompt.innerHTML += '<br>Get one Detective Badge!'; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+      case 'shield': addShield(currentPlayerIndex); actionPrompt.innerHTML += '<br>Get one Shield Card!'; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+      case 'thief': handleThief(); break;
+      case 'mystery': drawCaseCard(); break;
     }
-    return wheelSections[wheelSections.length - 1];
   }
 
-  function handleSpinResult(result){
-    isSpinning=false;
-    const t=teams[currentPlayerIndex];
-    actionPrompt.innerHTML=`【${t.name}】转到了：<span class="text-4xl font-black text-amber-200">${result.symbol}</span> ${result.label}`;
-    switch(result.result){
-      case 'book': t.books+=1; playSound('E4'); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
-      case 'gem': t.gems+=1; playMagic(); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
-      case 'wand': t.wands+=1; playSound('A5'); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
-      case 'shield': t.shields+=1; playSound('G5'); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
-      case 'dragon': playDragonSound(); handleDragon(); break;
-      case 'spell': playSpellSound(); drawSpellCard(); break;
-    }
-  }
-
-  function handleDragon(){
-    stealOptions.innerHTML='';
-    let hasTargets=false;
-    teams.forEach((target,idx)=>{
-      if(idx===currentPlayerIndex) return;
-      [['books','魔法书','bg-violet-700 hover:bg-violet-800'],['gems','魔法宝石','bg-cyan-700 hover:bg-cyan-800'],['wands','魔杖','bg-amber-600 hover:bg-amber-700'],['potions','魔法药水','bg-fuchsia-700 hover:bg-fuchsia-800']].forEach(([key,label,cls])=>{
-        if(target[key]>0){
-          hasTargets=true;
-          const btn=document.createElement('button');
-          btn.className=`block w-full ${cls} text-white font-black py-2 px-4 rounded-xl btn mb-2`;
-          btn.textContent=`从【${target.name}】抢夺 1 个${label}${target.shields>0?'（对方有护盾）':''}`;
-          btn.onclick=()=>performSteal(idx,key);
+  function handleThief() {
+    actionPrompt.innerHTML += '<br>Thief Trouble!';
+    stealOptions.innerHTML = '';
+    let hasTargets = false;
+    teams.forEach((targetTeam, targetIndex) => {
+      if (targetIndex === currentPlayerIndex) return;
+      [['evidence','Evidence','bg-yellow-600 hover:bg-yellow-700'], ['clues','Clue','bg-green-600 hover:bg-green-700'], ['badges','Badge','bg-blue-600 hover:bg-blue-700']].forEach(([assetType,label,cls]) => {
+        if (targetTeam[assetType] > 0) {
+          if (assetType === 'clues' && targetTeam.clues <= 1) return;
+          hasTargets = true;
+          const btn = document.createElement('button');
+          btn.className = `block w-full ${cls} text-white font-black py-2 px-4 rounded-xl btn mb-2`;
+          const shieldText = targetTeam.shields > 0 ? ' (Shield!)' : '';
+          btn.textContent = `Take 1 ${label} from ${targetTeam.name}${shieldText}`;
+          btn.onclick = () => performSteal(targetIndex, assetType);
           stealOptions.appendChild(btn);
         }
       });
     });
-    if(!hasTargets){
-      actionPrompt.textContent='龙盘旋一圈，没有找到可抢夺的资源。';
-      setTimeout(()=>checkReadyAndSwitch(true),1200); return;
-    }
-    const cancel=document.createElement('button');
-    cancel.className='block w-full bg-gray-600 hover:bg-gray-700 text-white font-black py-2 px-4 rounded-xl btn mt-3';
-    cancel.textContent='放弃挑战';
-    cancel.onclick=()=>{closeAllModals(); checkReadyAndSwitch(true);};
-    stealOptions.appendChild(cancel);
+    if (!hasTargets) { actionPrompt.textContent = 'No card to take. Keep looking!'; setTimeout(() => checkReadyAndSwitch(true), 1200); return; }
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'block w-full bg-slate-500 hover:bg-slate-600 text-white font-black py-2 px-4 rounded-xl btn mt-4';
+    cancelBtn.textContent = 'Skip';
+    cancelBtn.onclick = () => { closeAllModals(); checkReadyAndSwitch(true); };
+    stealOptions.appendChild(cancelBtn);
     showModal(stealModal);
   }
 
-  function performSteal(targetIndex,key){
-    const target=teams[targetIndex], current=teams[currentPlayerIndex];
+  function performSteal(targetIndex, assetType) {
+    const target = teams[targetIndex];
+    const current = teams[currentPlayerIndex];
     closeAllModals();
-    if(target.shields>0){
-      target.shields-=1;
-      actionPrompt.textContent=`【${target.name}】的魔法护盾抵消了龙的挑战！`;
-      playShieldSound();
-    }else{
-      target[key]-=1; current[key]+=1;
-      actionPrompt.textContent=`【${current.name}】从【${target.name}】抢到了 1 个${labels()[key]}！`;
-      playDragonSound(); if(key==='gems') playMagic();
+    if (target.shields > 0) {
+      target.shields -= 1;
+      actionPrompt.textContent = `${target.name}'s Shield Card works!`;
+      playSound('F4'); updateUI();
+    } else {
+      const labels = { clues:'Clue', evidence:'Evidence', badges:'Badge' };
+      target[assetType] -= 1;
+      current[assetType] += 1;
+      if (assetType === 'clues') { const card = removeRandomCard(target, 'clues'); if (card) current.clueNotes.push(card); }
+      if (assetType === 'evidence') { const card = removeRandomCard(target, 'evidence'); if (card) current.evidenceNotes.push(card); }
+      actionPrompt.textContent = `${current.name} takes one ${labels[assetType]} from ${target.name}!`;
+      playSound('C3'); if (assetType === 'evidence') playCoinSound(); updateUI();
     }
-    updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200);
+    setTimeout(() => checkReadyAndSwitch(true), 1200);
   }
 
-  function drawSpellCard(){
-    const card=spellCards[Math.floor(Math.random()*spellCards.length)];
-    spellCardContent.innerHTML=`<div class="text-5xl font-black text-violet-800 mb-3">${card.symbol}</div><div class="spell-badge mb-3">${card.name}</div><div class="text-xl font-bold">${card.text}</div>`;
-    showModal(spellModal);
-    spellOkBtn.onclick=()=>{
+  function drawCaseCard() {
+    const card = pickWeightedItem(caseCards);
+    playSound('B4');
+    caseCardContent.innerHTML = `<div class="text-5xl mb-3 font-black">${card.symbol}</div><div class="font-black mb-2 text-xl">${card.name}</div><div class="text-lg">${card.text}</div>`;
+    showModal(caseCardModal);
+    caseCardOkBtn.onclick = () => {
       closeAllModals();
-      const normal=card.action();
+      const shouldContinue = card.action();
       updateUI();
-      if(normal && !isExtraSpinQuestion) setTimeout(()=>checkReadyAndSwitch(true),800);
+      if (shouldContinue && !isExtraSpinQuestion) setTimeout(() => checkReadyAndSwitch(true), 800);
     };
   }
 
-  function chooseTeamToStealGem(){
-    choiceTitle.textContent='Accio 召唤咒';
-    choicePrompt.textContent='选择一个学院，召唤它的 1 个魔法宝石。若对方有护盾，将自动抵消。';
-    choiceOptions.innerHTML='';
-    let any=false;
-    teams.forEach((t,idx)=>{
-      if(idx===currentPlayerIndex || t.gems<=0) return;
-      any=true;
-      const btn=document.createElement('button');
-      btn.className='block w-full bg-cyan-700 hover:bg-cyan-800 text-white font-black py-2 px-4 rounded-xl btn mb-2';
-      btn.textContent=`召唤【${t.name}】的 1 个宝石${t.shields>0?'（有护盾）':''}`;
-      btn.onclick=()=>performSteal(idx,'gems');
+  function chooseTeamToSkip() {
+    choiceTitle.textContent = 'Dark Room Card';
+    choicePrompt.textContent = 'Choose one team. They miss one turn.';
+    choiceOptions.innerHTML = '';
+    let hasOtherTeams = false;
+    teams.forEach((team, index) => {
+      if (index === currentPlayerIndex) return;
+      hasOtherTeams = true;
+      const btn = document.createElement('button');
+      btn.className = 'block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2 px-4 rounded-xl btn mb-2';
+      btn.textContent = `${team.name} misses one turn`;
+      btn.onclick = () => { teams[index].skipTurns += 1; closeAllModals(); actionPrompt.textContent = `${team.name} will miss one turn!`; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1000); };
       choiceOptions.appendChild(btn);
     });
-    if(!any){actionPrompt.textContent='没有可召唤的宝石。'; setTimeout(()=>checkReadyAndSwitch(true),1000); return;}
+    if (!hasOtherTeams) { actionPrompt.textContent = 'No team to choose.'; setTimeout(() => checkReadyAndSwitch(true), 1000); return; }
     showModal(choiceModal);
   }
 
-  function chooseTeamToLoseBook(){
-    choiceTitle.textContent='Obliviate 遗忘咒';
-    choicePrompt.textContent='选择一个学院，让它遗忘 1 本魔法书。';
-    choiceOptions.innerHTML='';
-    let any=false;
-    teams.forEach((t,idx)=>{
-      if(idx===currentPlayerIndex || t.books<=0) return;
-      any=true;
-      const btn=document.createElement('button');
-      btn.className='block w-full bg-rose-700 hover:bg-rose-800 text-white font-black py-2 px-4 rounded-xl btn mb-2';
-      btn.textContent=`让【${t.name}】失去 1 本魔法书`;
-      btn.onclick=()=>{t.books-=1; closeAllModals(); actionPrompt.textContent=`【${t.name}】遗忘了 1 本魔法书！`; updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1000);};
+  function chooseTeamToPeek() {
+    choiceTitle.textContent = 'Footprint Card';
+    choicePrompt.textContent = 'Choose one team. Look at one clue card.';
+    choiceOptions.innerHTML = '';
+    let hasTarget = false;
+    teams.forEach((team, index) => {
+      if (index === currentPlayerIndex || team.clueNotes.length === 0) return;
+      hasTarget = true;
+      const btn = document.createElement('button');
+      btn.className = 'block w-full bg-purple-600 hover:bg-purple-700 text-white font-black py-2 px-4 rounded-xl btn mb-2';
+      btn.textContent = `Look at ${team.name}'s clue`;
+      btn.onclick = () => {
+        const card = team.clueNotes[Math.floor(Math.random()*team.clueNotes.length)];
+        closeAllModals();
+        actionPrompt.innerHTML = `<b>${team.name}'s clue:</b><br>${card.en}`;
+        setTimeout(() => checkReadyAndSwitch(true), 1800);
+      };
       choiceOptions.appendChild(btn);
     });
-    if(!any){actionPrompt.textContent='没有可影响的魔法书。'; setTimeout(()=>checkReadyAndSwitch(true),1000); return;}
+    if (!hasTarget) { closeAllModals(); actionPrompt.textContent = 'No clue card to see. Get one clue card instead!'; awardClueCard(currentPlayerIndex, true); setTimeout(() => checkReadyAndSwitch(true), 1000); return; }
     showModal(choiceModal);
   }
 
-  function giveRandomResource(teamIndex){
-    const t=teams[teamIndex];
-    const options=['books','gems','wands','shields','potions'];
-    const key=options[Math.floor(Math.random()*options.length)];
-    t[key]+=1;
-    actionPrompt.textContent=`Felix 幸运咒生效！【${t.name}】获得 1 个${labels()[key] || '魔法护盾'}。`;
-    playMagic();
+  function buyBadge(teamIndex) {
+    const team = teams[teamIndex];
+    if (team.evidence >= 3) {
+      team.evidence -= 3;
+      team.badges += 1;
+      if (team.evidenceNotes.length > 0) team.evidenceNotes.splice(0, Math.min(3, team.evidenceNotes.length));
+      playSound('G5');
+      actionPrompt.textContent = `${team.name} trades 3 Evidence Cards for 1 Detective Badge!`;
+      updateUI(); checkReadyAndSwitch(false);
+    }
   }
 
-  function startExtraSpinQuestion(){
-    isExtraSpinQuestion=true;
-    actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】请回答漂浮咒奖励题，答对可额外转动一次魔法阵！`;
-    answerControls.classList.remove('hidden'); answerControls.classList.add('flex');
-    correctBtn.disabled=false; incorrectBtn.disabled=false;
-  }
-
-  function useShop(index,type){
-    const t=teams[index];
-    if(type==='gemToWand' && t.gems>=3){t.gems-=3;t.wands+=1; actionPrompt.textContent=`【${t.name}】用 3 个魔法宝石兑换了 1 根魔杖！`;}
-    if(type==='gemToShield' && t.gems>=2){t.gems-=2;t.shields+=1; actionPrompt.textContent=`【${t.name}】用 2 个魔法宝石兑换了 1 个魔法护盾！`;}
-    if(type==='bookToGem' && t.books>=3){t.books-=3;t.gems+=1; actionPrompt.textContent=`【${t.name}】用 3 本魔法书兑换了 1 个魔法宝石！`;}
-    if(type==='potionToGem' && t.potions>=2){t.potions-=2;t.gems+=1; actionPrompt.textContent=`【${t.name}】用 2 瓶魔法药水兑换了 1 个魔法宝石！`;}
-    playMagic(); updateUI(); checkReadyAndSwitch(false);
-  }
-
-  function openFinalExam(index){
-    pendingExamTeamIndex=index;
-    finalMessage.innerHTML=`【${teams[index].name}】已集齐魔法资源！<br>请老师出一道终极魔法题，学生答对即通过考试。`;
+  function openFinalChase(teamIndex, forced=false) {
+    pendingFinalTeamIndex = teamIndex;
+    const team = teams[teamIndex];
+    finalMessage.innerHTML = `${team.name}, finish three steps to catch the real thief!`;
+    finalStepBox.innerHTML = `
+      <div class="grid gap-4 text-left">
+        <label class="block font-black text-slate-700">Step 1: Where was the thief?
+          <select id="final-place" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
+            ${suspects.map(s => `<option value="${s.place}">${s.place}</option>`).join('')}
+          </select>
+        </label>
+        <label class="block font-black text-slate-700">Step 2: What did the thief have?
+          <select id="final-item" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
+            ${suspects.map(s => `<option value="${s.item}">${s.item}</option>`).join('')}
+          </select>
+        </label>
+        <label class="block font-black text-slate-700">Step 3: Who was the thief?
+          <select id="final-person" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
+            ${suspects.map(s => `<option value="${s.name}">${s.display}</option>`).join('')}
+          </select>
+        </label>
+      </div>`;
+    finalCancelBtn.style.display = forced ? 'none' : 'block';
     showModal(finalModal);
   }
 
-  function checkReadyAndSwitch(shouldSwitch){
-    updateUI();
-    const t=teams[currentPlayerIndex];
-    if(t && canTakeExam(t)) actionPrompt.textContent=`【${t.name}】已集齐考试条件，可以参加终极魔法考试！`;
-    if(shouldSwitch) setTimeout(startNextTurn,1500);
+  function resolveFinalChase() {
+    const team = teams[pendingFinalTeamIndex];
+    const place = document.getElementById('final-place').value;
+    const item = document.getElementById('final-item').value;
+    const person = document.getElementById('final-person').value;
+    const success = place === trueThief.place && item === trueThief.item && person === trueThief.name;
+    closeAllModals(false);
+    if (success) {
+      victoryMessage.innerHTML = `Great! ${team.name} catches the real thief!<br><span class="text-base text-slate-600">The treasure is safe now.</span>`;
+      showModal(victoryModal);
+      playSound('C6','2n');
+    } else {
+      if (team.evidence > 0) team.evidence -= 1;
+      if (team.evidenceNotes.length > 0) team.evidenceNotes.pop();
+      closeAllModals();
+      actionPrompt.textContent = `Oh no! The thief runs away. ${team.name} loses one Evidence Card.`;
+      updateUI();
+      setTimeout(startNextTurn, 1300);
+    }
   }
 
-  function showModal(modal){modalOverlay.style.display='flex'; modal.classList.remove('hidden'); modal.classList.add('flex');}
-  function closeAllModals(){[victoryModal,stealModal,choiceModal,spellModal,finalModal].forEach(m=>{m.classList.add('hidden');m.classList.remove('flex')}); modalOverlay.style.display='none';}
+  function timerDown() {
+    timerLeft = Math.max(0, timerLeft - 1);
+    updateTimerUI();
+    if (timerLeft <= 0) {
+      actionPrompt.textContent = 'Time is up! Make your final guess now!';
+      const bestIndex = getBestTeamIndex();
+      setTimeout(() => openFinalChase(bestIndex, true), 800);
+      return true;
+    }
+    return false;
+  }
+  function getBestTeamIndex() {
+    let best = 0;
+    for (let i = 1; i < teams.length; i++) {
+      const a = teams[i], b = teams[best];
+      const scoreA = a.evidence*100 + a.clues*10 + a.badges;
+      const scoreB = b.evidence*100 + b.clues*10 + b.badges;
+      if (scoreA > scoreB) best = i;
+    }
+    return best;
+  }
 
-  teamCountSelect.addEventListener('change',updateTeamNameInputs);
-  startGameBtn.addEventListener('click',()=>{unlockAudio(); setupGame();});
-  startRoundBtn.addEventListener('click',()=>{startRoundBtn.classList.add('hidden'); startNextTurn();});
-  correctBtn.addEventListener('click',()=>{
-    correctBtn.disabled=true; incorrectBtn.disabled=true;
-    if(isExtraSpinQuestion){
-      isExtraSpinQuestion=false;
-      actionPrompt.textContent='漂浮咒成功！请额外转动一次魔法阵。';
-      answerControls.classList.add('hidden'); spinBtn.disabled=false; playCorrectSound();
-    }else{
-      actionPrompt.textContent='施法成功！请点击“转动魔法阵”。';
-      answerControls.classList.add('hidden'); spinBtn.disabled=false; playCorrectSound();
+  function checkReadyAndSwitch(shouldSwitch) {
+    updateUI();
+    const readyTeam = teams[currentPlayerIndex];
+    if (readyTeam && canFinalChase(readyTeam)) actionPrompt.textContent = `${readyTeam.name} is ready! Click Final Chase or keep looking.`;
+    if (shouldSwitch) setTimeout(startNextTurn, 1500);
+  }
+
+  teamCountSelect.addEventListener('change', updateTeamNameInputs);
+  startGameBtn.addEventListener('click', startSetupGame);
+  startRoundBtn.addEventListener('click', () => { startRoundBtn.classList.add('hidden'); startNextTurn(); });
+
+  correctBtn.addEventListener('click', () => {
+    correctBtn.disabled = true; incorrectBtn.disabled = true;
+    if (isExtraSpinQuestion) {
+      isExtraSpinQuestion = false;
+      playSound('C5');
+      actionPrompt.textContent = 'Good job! Spin again.';
+      answerControls.classList.add('hidden');
+      spinBtn.disabled = false;
+    } else {
+      playSound('C5');
+      actionPrompt.textContent = 'Good job! Spin the wheel.';
+      spinBtn.disabled = false;
+      answerControls.classList.add('hidden');
     }
   });
-  incorrectBtn.addEventListener('click',()=>{
-    correctBtn.disabled=true; incorrectBtn.disabled=true;
-    isExtraSpinQuestion=false;
+  incorrectBtn.addEventListener('click', () => {
+    correctBtn.disabled = true; incorrectBtn.disabled = true;
     answerControls.classList.add('hidden');
-    actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】咒语失败，本轮机会轮空。`;
-    playWrongSound(); setTimeout(startNextTurn,1200);
+    playSound('C3','4n');
+    isExtraSpinQuestion = false;
+    const ended = timerDown();
+    if (!ended) {
+      actionPrompt.textContent = `Wrong answer! The clock goes down by one. (${timerLeft}/${timerMax})`;
+      setTimeout(startNextTurn, 1200);
+    }
   });
-  spinBtn.addEventListener('click',()=>{
-    if(isSpinning) return;
-    playSpinSound();
-    isSpinning=true; spinBtn.disabled=true;
-    const extra=Math.floor(Math.random()*6)+5;
-    const stop=Math.floor(Math.random()*360);
-    currentWheelRotation += extra*360 + stop;
-    wheel.style.transform=`rotate(${currentWheelRotation}deg)`;
-    const finalAngle=currentWheelRotation%360;
-    const winningAngle=(360-finalAngle)%360;
-    const result=getWheelResultByAngle(winningAngle);
-    setTimeout(()=>handleSpinResult(result),4100);
+
+  spinBtn.addEventListener('click', () => {
+    if (isSpinning) return;
+    isSpinning = true;
+    spinBtn.disabled = true;
+    const layout = getWeightedLayout(wheelSections);
+    const result = pickWeightedItem(layout);
+    const anglePadding = Math.min(3, Math.max(0, (result.endAngle - result.startAngle) * .08));
+    const winningAngle = result.startAngle + anglePadding + Math.random() * ((result.endAngle - result.startAngle) - anglePadding * 2);
+    const desiredFinalAngle = (360 - winningAngle) % 360;
+    const currentFinalAngle = ((currentWheelRotation % 360) + 360) % 360;
+    const rotationDelta = (desiredFinalAngle - currentFinalAngle + 360) % 360;
+    const randomExtraSpins = Math.floor(Math.random() * 6) + 5;
+    currentWheelRotation += (randomExtraSpins * 360) + rotationDelta;
+    wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
+    setTimeout(() => handleSpinResult(result), 4100);
   });
-  finalSuccessBtn.addEventListener('click',()=>{
-    const winner=teams[pendingExamTeamIndex];
-    closeAllModals();
-    victoryMessage.textContent=`恭喜 ${winner.name} 通过终极魔法考试，成为最强小巫师！`;
-    showModal(victoryModal); playVictorySound();
-  });
-  finalFailBtn.addEventListener('click',()=>{
-    const t=teams[pendingExamTeamIndex];
-    if(t.gems>0)t.gems-=1; else if(t.books>0)t.books-=1;
-    closeAllModals();
-    playExamFailSound();
-    actionPrompt.textContent=`【${t.name}】终极魔法考试失败，失去 1 个资源，继续修炼！`;
-    updateUI(); setTimeout(startNextTurn,1200);
-  });
-  finalCancelBtn.addEventListener('click',closeAllModals);
-  backToSetupBtn.addEventListener('click',()=>location.reload());
-  window.addEventListener('resize',positionWheelSymbols);
+
+  notebookCloseBtn.addEventListener('click', closeAllModals);
+  finalCancelBtn.addEventListener('click', closeAllModals);
+  finalSubmitBtn.addEventListener('click', resolveFinalChase);
+  window.addEventListener('resize', positionWheelSymbols);
+  backToSetupBtn.addEventListener('click', () => location.reload());
+
   updateTeamNameInputs();
 };
 </script>
