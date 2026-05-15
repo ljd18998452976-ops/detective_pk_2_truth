@@ -270,15 +270,15 @@
             const defaultNames = ["福尔摩斯", "华生", "柯南", "波洛", "小Q", "阿加莎"];
             const suspects = ["管家", "女演员", "老教授", "厨师"];
             const wheelSections = [
-                { result: 'clue', emoji: '线索' }, { result: 'badge', emoji: '徽章' }, { result: 'evidence', emoji: '证据' },
-                { result: 'thief', emoji: '小偷' }, { result: 'shield', emoji: '防偷' }, { result: 'mystery', emoji: '案件' },
+                { result: 'clue', emoji: '◇' }, { result: 'badge', emoji: '◎' }, { result: 'evidence', emoji: '□' },
+                { result: 'thief', emoji: '✕' }, { result: 'shield', emoji: '△' }, { result: 'mystery', emoji: '?' },
             ];
             const caseCards = [
-                { emoji: '手电', name: '手电筒', text: '发现隐藏脚印，获得 1 条线索。', action: () => teams[currentPlayerIndex].clues += 1 },
-                { emoji: '手套', name: '手套', text: '留下干净指纹，获得 1 张防偷卡。', action: () => teams[currentPlayerIndex].shields += 1 },
-                { emoji: '时间', name: '时间线', text: '重新整理案发时间线。再回答一题，答对后可以多转一次。', action: () => startExtraSpinQuestion() },
-                { emoji: '鉴定', name: '鉴定报告', text: '实验室给出鉴定结果，获得 1 份证据。', action: () => teams[currentPlayerIndex].evidence += 1 },
-                { emoji: '密室', name: '密室', text: '发现密室机关，可以指定一队暂停一轮。', action: () => chooseTeamToSkip() },
+                { emoji: '◇', name: '手电筒', text: '发现隐藏脚印，获得 1 条线索。', action: () => teams[currentPlayerIndex].clues += 1 },
+                { emoji: '△', name: '手套', text: '留下干净指纹，获得 1 张防偷卡。', action: () => teams[currentPlayerIndex].shields += 1 },
+                { emoji: '↺', name: '时间线', text: '重新整理案发时间线。再回答一题，答对后可以多转一次。', action: () => startExtraSpinQuestion() },
+                { emoji: '□', name: '鉴定报告', text: '实验室给出鉴定结果，获得 1 份证据。', action: () => teams[currentPlayerIndex].evidence += 1 },
+                { emoji: '#', name: '密室', text: '发现密室机关，可以指定一队暂停一轮。', action: () => chooseTeamToSkip() },
             ];
 
             // --- Audio ---
@@ -321,7 +321,7 @@
                 currentPlayerIndex = -1;
                 updateUI();
                 actionPrompt.textContent = `请点击“开始游戏”按钮，开启第一轮调查！`;
-                rulesContainer.innerHTML = '<p class="text-sm font-semibold">获胜条件: 集齐 线索 x3、证据 x1、徽章 x1 后，点击“指认真凶”，并完成最终破案题。</p><p class="text-xs mt-1">防偷卡可抵消一次小偷干扰；证据 x3 可兑换 徽章 x1。</p>';
+                rulesContainer.innerHTML = '<p class="text-sm font-semibold">获胜条件: 集齐 ◇ x3、□ x1、◎ x1 后，点击“指认真凶”，并完成最终破案题。</p><p class="text-xs mt-1">△ 可抵消一次✕；3□ 可兑换 1◎。</p>';
             }
 
             function positionWheelEmojis() {
@@ -356,22 +356,22 @@
                 headerHtml += '</tr></thead>';
                 
                 let bodyHtml = '<tbody>';
-                bodyHtml += '<tr><td class="asset-name">线索 线索</td>';
+                bodyHtml += '<tr><td class="asset-name">◇</td>';
                 teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.clues} / 3</td>`; });
                 bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name">证据 证据</td>';
+                bodyHtml += '<tr><td class="asset-name">□</td>';
                 teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.evidence} / 1</td>`; });
                 bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name">徽章 徽章</td>';
+                bodyHtml += '<tr><td class="asset-name">◎</td>';
                 teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.badges} / 1</td>`; });
                 bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name">防偷 防偷卡</td>';
+                bodyHtml += '<tr><td class="asset-name">△</td>';
                 teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.shields}</td>`; });
                 bodyHtml += '</tr>';
                 bodyHtml += '<tr><td>操作</td>';
                 teams.forEach((team, index) => {
                     bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">
-                        <button class="buy-badge-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md text-sm btn mb-2" data-index="${index}" ${team.evidence < 3 ? 'disabled' : ''}>用3证据换徽章</button>
+                        <button class="buy-badge-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md text-sm btn mb-2" data-index="${index}" ${team.evidence < 3 ? 'disabled' : ''}>3□ → ◎</button>
                         <button class="accuse-btn bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${!canAccuse(team) ? 'disabled' : ''}>指认真凶</button>
                     </td>`;
                 });
@@ -478,7 +478,7 @@
                     case 'clue': team.clues += 1; playSound('E4'); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
                     case 'thief': handleThief(); return;
                     case 'badge': team.badges += 1; playSound('A5'); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-                    case 'shield': team.shields += 1; playSound('G5'); actionPrompt.innerHTML += ` 获得 1 张防偷卡！`; setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+                    case 'shield': team.shields += 1; playSound('G5'); actionPrompt.innerHTML += ` 获得 1 个 △！`; setTimeout(() => checkReadyAndSwitch(true), 1200); break;
                     case 'mystery': drawCaseCard(); return;
                 }
                 updateUI();
@@ -490,12 +490,12 @@
                 let hasTargets = false;
                 teams.forEach((targetTeam, targetIndex) => {
                     if (targetIndex === currentPlayerIndex) return;
-                    [['evidence','证据','bg-yellow-600 hover:bg-yellow-700'], ['clues','线索','bg-green-600 hover:bg-green-700'], ['badges','徽章','bg-blue-600 hover:bg-blue-700']].forEach(([assetType, label, cls]) => {
+                    [['evidence','□','bg-yellow-600 hover:bg-yellow-700'], ['clues','◇','bg-green-600 hover:bg-green-700'], ['badges','◎','bg-blue-600 hover:bg-blue-700']].forEach(([assetType, label, cls]) => {
                         if (targetTeam[assetType] > 0) {
                             hasTargets = true;
                             const btn = document.createElement('button');
                             btn.className = `block w-full ${cls} text-white font-bold py-2 px-4 rounded btn mb-2`;
-                            const shieldText = targetTeam.shields > 0 ? '（对方有防偷卡，可能抵消）' : '';
+                            const shieldText = targetTeam.shields > 0 ? '（对方有△）' : '';
                             btn.textContent = `从【${targetTeam.name}】截取 1 个 ${label}${shieldText}`;
                             btn.onclick = () => performSteal(targetIndex, assetType);
                             stealOptions.appendChild(btn);
@@ -504,7 +504,7 @@
                 });
 
                 if (!hasTargets) {
-                    actionPrompt.textContent = "小偷 可惜...没有可截取的目标！";
+                    actionPrompt.textContent = "✕ 可惜...没有可截取的目标！";
                     setTimeout(() => checkReadyAndSwitch(true), 1200);
                     return;
                 }
@@ -528,12 +528,12 @@
                 closeAllModals();
                 if (target.shields > 0) {
                     target.shields -= 1;
-                    actionPrompt.textContent = `【${target.name}】使用 防偷卡，成功抵消小偷干扰！`;
+                    actionPrompt.textContent = `【${target.name}】使用 △，成功抵消干扰！`;
                     playSound('F4');
                 } else {
                     target[assetType] -= 1;
                     current[assetType] += 1;
-                    const labels = { clues: '线索', evidence: '证据', badges: '徽章' };
+                    const labels = { clues: '◇', evidence: '□', badges: '◎' };
                     actionPrompt.textContent = `【${current.name}】从【${target.name}】截取了 1 个 ${labels[assetType]}！`;
                     playSound('C3');
                     if (assetType === 'evidence') playCoinSound();
@@ -545,7 +545,7 @@
                 const team = teams[teamIndex];
                 if (team.evidence >= 3) {
                     team.evidence -= 3; team.badges += 1; playSound('G5');
-                    actionPrompt.textContent = `【${team.name}】用3份证据兑换了1枚侦探徽章！`;
+                    actionPrompt.textContent = `【${team.name}】用 3□ 兑换了 1◎！`;
                     checkReadyAndSwitch(false);
                 }
             }
@@ -575,7 +575,7 @@
             }
 
             function chooseTeamToSkip() {
-                choiceTitle.textContent = '密室 密室机关';
+                choiceTitle.textContent = '# 密室机关';
                 choicePrompt.textContent = '指定一队暂停下一轮。';
                 choiceOptions.innerHTML = '';
                 let hasOtherTeams = false;
