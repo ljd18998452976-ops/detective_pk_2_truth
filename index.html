@@ -1,954 +1,684 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>侦探破案 PK 3.0：随机真凶版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <style>
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background-color: #E9EEF5;
-            background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,.55), transparent 25%), linear-gradient(135deg, #dfe7f3 0%, #eef2f7 45%, #d8dde8 100%);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        .modal-content {
-            background-color: #F8FAFC;
-            border: 4px solid #1F2937;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            transition: transform 0.3s ease;
-        }
-        #game-screen {
-            min-height: 100vh;
-        }
-        #wheel {
-            border-radius: 50%;
-            border: 10px solid #1F2937;
-            background: conic-gradient(
-                #93C5FD 0deg 60deg,
-                #FDE68A 60deg 120deg,
-                #C4B5FD 120deg 180deg,
-                #FCA5A5 180deg 240deg,
-                #D9F99D 240deg 300deg,
-                #A7F3D0 300deg 360deg
-            );
-            box-shadow: 0 0 20px rgba(0,0,0,0.5) inset, 0 0 15px rgba(0,0,0,0.3);
-            position: relative;
-            transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
-            width: 100%;
-            height: 100%;
-        }
-        .wheel-section-content {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-        .wheel-symbol {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform-origin: center;
-            color: #111827;
-            font-weight: 700;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.45);
-        }
-        #spin-btn {
-            border: 5px solid #475569;
-            box-shadow: 0 6px #334155;
-            position: relative;
-        }
-        #spin-btn:active:not(:disabled) {
-            box-shadow: 0 2px #334155;
-            transform: translateY(4px);
-        }
-        #spin-btn:disabled {
-            box-shadow: 0 6px #334155;
-            transform: translateY(0);
-            background-color: #9ca3af !important;
-            cursor: not-allowed;
-        }
-        #spin-btn::before {
-            content: '';
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 25px solid transparent;
-            border-right: 25px solid transparent;
-            border-bottom: 40px solid #DC2626;
-            z-index: 30;
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
-        }
-        .teams-table {
-            background-color: rgba(248, 250, 252, 0.92);
-            border: 3px solid #334155;
-            border-collapse: collapse;
-            width: 100%;
-            box-shadow: 5px 5px 10px rgba(0,0,0,0.18);
-        }
-        .teams-table th, .teams-table td {
-            border: 2px solid #334155;
-            padding: 8px;
-            text-align: center;
-            transition: background-color 0.3s;
-            vertical-align: middle;
-        }
-        .teams-table th {
-            background-color: rgba(51, 65, 85, 0.12);
-            font-weight: bold;
-        }
-        .teams-table .asset-name {
-            font-weight: bold;
-            font-size: 1.06rem;
-            white-space: nowrap;
-        }
-        .teams-table .active-col {
-            background-color: rgba(59, 130, 246, 0.12);
-            box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.35);
-        }
-        .btn {
-            transition: all 0.2s ease;
-            box-shadow: 0 4px #999;
-        }
-        .btn:active:not(:disabled) {
-            box-shadow: 0 2px #666;
-            transform: translateY(2px);
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: 0 4px #999;
-            transform: translateY(0);
-        }
-        .asset-symbol {
-            display: inline-block;
-            min-width: 1.2em;
-            text-align: center;
-            font-weight: 700;
-        }
-        .note-card {
-            background: #fff;
-            border: 2px solid #CBD5E1;
-            border-left: 6px solid #3B82F6;
-            border-radius: 12px;
-            padding: 10px 12px;
-            text-align: left;
-        }
-        .evidence-card {
-            border-left-color: #F59E0B;
-        }
-        .tag {
-            display: inline-block;
-            border-radius: 999px;
-            padding: 2px 8px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>魔法学院 PK 2.0：最强小巫师争霸赛</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+  <style>
+    :root{
+      --ink:#f8f5ff;
+      --purple:#7c3aed;
+      --deep:#10051f;
+      --gold:#f7d774;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family:'Noto Sans SC',sans-serif;
+      color:var(--ink);
+      min-height:100vh;
+      overflow-x:hidden;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(168,85,247,.45), transparent 22%),
+        radial-gradient(circle at 80% 12%, rgba(56,189,248,.22), transparent 18%),
+        radial-gradient(circle at 55% 80%, rgba(245,158,11,.18), transparent 25%),
+        linear-gradient(135deg,#080214 0%,#160329 38%,#071527 72%,#1d0b32 100%);
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,.35) 0 1px, transparent 1.5px);
+      background-size:64px 64px, 110px 110px;
+      background-position:0 0, 22px 35px;
+      opacity:.45;
+      animation:twinkle 7s linear infinite alternate;
+    }
+    @keyframes twinkle{from{opacity:.28}to{opacity:.58}}
+    .arcane-card{
+      background:linear-gradient(180deg,rgba(27,12,55,.94),rgba(10,13,38,.94));
+      border:2px solid rgba(247,215,116,.7);
+      box-shadow:0 0 22px rgba(124,58,237,.35), inset 0 0 18px rgba(255,255,255,.05);
+      backdrop-filter: blur(8px);
+    }
+    .parchment{
+      background:linear-gradient(180deg,#fff8dc,#f5e6b8);
+      color:#2d1603;
+      border:4px solid #8b5a18;
+      box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 0 20px rgba(139,90,24,.25);
+    }
+    #game-screen{min-height:100vh}
+    #wheel{
+      border-radius:50%;
+      border:10px solid rgba(247,215,116,.9);
+      background:conic-gradient(
+        #6d28d9 0deg 80deg,    /* ✦ 魔法书：22.2% */
+        #0891b2 80deg 160deg,   /* ◆ 魔法宝石：22.2% */
+        #f59e0b 160deg 210deg,  /* ★ 魔杖：13.9% */
+        #b91c1c 210deg 275deg,  /* × 龙的挑战：18.1% */
+        #4f46e5 275deg 300deg,  /* □ 魔法护盾：6.9% */
+        #10b981 300deg 360deg   /* ? 咒语卡：16.7% */
+      );
+      box-shadow:0 0 24px rgba(247,215,116,.7), 0 0 60px rgba(124,58,237,.65), inset 0 0 25px rgba(0,0,0,.65);
+      position:relative;
+      transition:transform 4s cubic-bezier(.25,1,.5,1);
+      width:100%;height:100%;
+    }
+    #wheel::before{
+      content:"";
+      position:absolute;
+      inset:28px;
+      border-radius:50%;
+      border:2px dashed rgba(255,255,255,.55);
+      box-shadow:inset 0 0 20px rgba(255,255,255,.12);
+    }
+    #wheel::after{
+      content:"✦  ✧  ✦  ✧  ✦";
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:rgba(255,255,255,.36);
+      font-size:30px;
+      letter-spacing:12px;
+      transform:rotate(-18deg);
+    }
+    .wheel-section-content{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:2}
+    .wheel-symbol{
+      position:absolute;top:50%;left:50%;transform-origin:center;
+      color:#fff8dc;font-weight:900;
+      text-shadow:0 0 8px rgba(255,255,255,.9),0 0 16px rgba(247,215,116,.8),2px 2px 3px rgba(0,0,0,.7);
+    }
+    #spin-btn{border:4px solid var(--gold);box-shadow:0 6px #5b3b06,0 0 20px rgba(255,255,255,.3);position:relative}
+    #spin-btn:active:not(:disabled){box-shadow:0 2px #5b3b06;transform:translateY(4px)}
+    #spin-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;background:#64748b!important}
+    #spin-btn::before{
+      content:"";position:absolute;top:-40px;left:50%;transform:translateX(-50%);
+      width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;border-bottom:40px solid #facc15;z-index:30;
+      filter:drop-shadow(0 0 8px rgba(250,204,21,.85));
+    }
+    .teams-table{width:100%;border-collapse:collapse;background:rgba(17,24,39,.72);border:2px solid rgba(247,215,116,.75);box-shadow:0 0 18px rgba(124,58,237,.38)}
+    .teams-table th,.teams-table td{border:1px solid rgba(247,215,116,.45);padding:8px;text-align:center;vertical-align:middle;color:#fff7ed}
+    .teams-table th{background:rgba(124,58,237,.34);font-weight:900;color:#fde68a}
+    .teams-table .active-col{background:rgba(250,204,21,.15);box-shadow:inset 0 0 14px rgba(250,204,21,.22)}
+    .asset-name{font-weight:900;white-space:nowrap;color:#fde68a!important}
+    .asset-symbol{display:inline-block;min-width:1.2em;font-weight:900;color:#fef3c7}
+    .btn{transition:all .18s ease;box-shadow:0 4px rgba(0,0,0,.4)}
+    .btn:active:not(:disabled){box-shadow:0 2px rgba(0,0,0,.45);transform:translateY(2px)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .glow-title{text-shadow:0 0 10px rgba(250,204,21,.9),0 0 28px rgba(124,58,237,.95)}
+    .spell-badge{display:inline-block;border-radius:999px;padding:2px 8px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.35);font-size:12px;font-weight:900;color:#5b21b6}
+  </style>
 </head>
 <body class="w-screen flex items-center justify-center p-4">
-    <div id="setup-screen" class="w-full max-w-lg mx-auto text-center">
-        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-800 mb-6">侦探破案 PK 3.0</h1>
-        <div class="modal-content p-6 sm:p-8 rounded-2xl">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-700 mb-4">随机真凶版</h2>
-            <p class="text-sm text-gray-600 mb-4 leading-relaxed">每局都会在嫌疑人中随机生成 1 名真凶。答题成功后转盘，收集线索卡与证据卡，查看本队笔记本并推理真相。</p>
-            <div class="mb-6">
-                <label for="team-count" class="block text-lg sm:text-xl mb-2 text-gray-600">选择队伍数量（可修改下方默认名称）:</label>
-                <select id="team-count" class="w-full p-3 text-lg border-2 border-gray-400 rounded-lg bg-white">
-                    <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
-                </select>
-            </div>
-            <div id="team-names-container" class="space-y-3 mb-6"></div>
-            <div class="rounded-xl bg-slate-100 border border-slate-300 p-4 text-left text-sm text-slate-700 mb-6">
-                <div class="font-bold mb-2">玩法摘要</div>
-                <ul class="list-disc pl-5 space-y-1">
-                    <li>答对题后才能转盘。</li>
-                    <li>● 线索：获得 1 张线索卡；◆ 证据：获得 1 张证据卡。</li>
-                    <li>★ 徽章 + ● 线索 x3 + ◆ 证据 x1 后可发起指认。</li>
-                    <li>指认时系统会自动判断是否抓到真凶。</li>
-                </ul>
-            </div>
-            <button id="start-game-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl text-xl sm:text-2xl btn">开始调查！</button>
+  <div id="setup-screen" class="w-full max-w-lg mx-auto text-center relative z-10">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-amber-200 mb-6 glow-title">魔法学院 PK</h1>
+    <div class="arcane-card p-6 sm:p-8 rounded-3xl">
+      <h2 class="text-2xl sm:text-3xl font-black text-amber-100 mb-3">最强小巫师争霸赛</h2>
+      <p class="text-sm text-violet-100/90 mb-5 leading-relaxed">答对题才能施法，转动魔法阵收集资源。龙会抢夺，咒语卡会触发神秘效果，防护道具概率较低，集齐条件后参加终极魔法考试。</p>
+      <div class="mb-5 text-left">
+        <label for="team-count" class="block text-lg mb-2 text-amber-100">选择学院数量：</label>
+        <select id="team-count" class="w-full p-3 text-lg border-2 border-amber-300 rounded-xl bg-slate-950 text-amber-100">
+          <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+        </select>
+      </div>
+      <div id="team-names-container" class="space-y-3 mb-6"></div>
+      <div class="rounded-2xl bg-black/25 border border-amber-200/40 p-4 text-left text-sm text-violet-50 mb-6">
+        <div class="font-black text-amber-100 mb-2">胜利条件</div>
+        <div>集齐 <b>✦ 魔法书 x2</b> + <b>★ 魔杖 x1</b> + <b>◆ 魔法宝石 x1</b> 后，参加终极魔法考试。</div>
+      </div>
+      <button id="start-game-btn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-black py-4 px-4 rounded-2xl text-xl sm:text-2xl btn">开启魔法试炼</button>
+    </div>
+  </div>
+
+  <div id="game-screen" class="hidden w-full max-w-7xl mx-auto flex-col lg:flex-row items-center justify-center gap-8 relative z-10">
+    <div class="w-full lg:w-3/5 flex items-center justify-center">
+      <div id="wheel-container" class="relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] flex items-center justify-center mx-auto">
+        <div id="wheel"></div>
+        <div class="absolute w-full h-full flex items-center justify-center z-10">
+          <button id="spin-btn" class="w-[108px] h-[108px] sm:w-[130px] sm:h-[130px] rounded-full text-lg sm:text-xl font-black bg-violet-700 hover:bg-violet-800 text-white z-20" disabled>转动<br>魔法阵</button>
         </div>
+      </div>
     </div>
 
-    <div id="game-screen" class="hidden w-full max-w-7xl mx-auto flex-col lg:flex-row items-center justify-center gap-8">
-        <div class="w-full lg:w-3/5 flex items-center justify-center">
-            <div id="wheel-container" class="relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] flex items-center justify-center mx-auto">
-                <div id="wheel"></div>
-                <div id="wheel-center" class="absolute w-full h-full flex items-center justify-center z-10">
-                    <button id="spin-btn" class="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-full text-xl sm:text-2xl font-bold bg-blue-500 hover:bg-blue-600 text-white z-20" disabled>寻找线索</button>
-                </div>
-            </div>
-        </div>
+    <div class="w-full lg:w-2/5 flex flex-col gap-5 items-center justify-start">
+      <div class="w-full text-center p-4 rounded-2xl arcane-card">
+        <p id="action-prompt" class="text-xl sm:text-2xl text-amber-50 min-h-[74px] flex items-center justify-center leading-relaxed"></p>
+      </div>
+      <div id="answer-controls" class="hidden justify-center gap-4 sm:gap-8 w-full">
+        <button id="correct-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">施法成功</button>
+        <button id="incorrect-btn" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">咒语失败</button>
+      </div>
+      <div id="controls" class="w-full">
+        <button id="start-round-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-4 px-12 rounded-xl text-xl sm:text-2xl btn">开始游戏</button>
+      </div>
+      <div id="teams-info-container" class="w-full mt-2"></div>
+      <div id="rules-container" class="w-full mt-1 text-center text-violet-100"></div>
+      <button id="back-to-setup-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-xl text-lg btn">返回设置</button>
+    </div>
+  </div>
 
-        <div class="w-full lg:w-2/5 flex flex-col gap-5 items-center justify-start">
-            <div id="status-bar" class="w-full text-center p-4 rounded-xl modal-content">
-                <p id="action-prompt" class="text-xl sm:text-2xl text-gray-700 min-h-[70px] flex items-center justify-center leading-relaxed"></p>
-            </div>
-
-            <div id="answer-controls" class="hidden justify-center gap-4 sm:gap-8 w-full">
-                <button id="correct-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl btn">回答正确</button>
-                <button id="incorrect-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl btn">回答错误</button>
-            </div>
-
-            <div id="controls" class="w-full space-y-3">
-                <button id="start-round-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 sm:py-4 sm:px-12 rounded-lg text-xl sm:text-2xl btn">开始游戏</button>
-            </div>
-
-            <div id="teams-info-container" class="w-full mt-2"></div>
-            <div id="rules-container" class="w-full mt-1 text-center text-gray-700"></div>
-            <div class="w-full mt-2">
-                <button id="back-to-setup-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-lg btn">返回设置</button>
-            </div>
-        </div>
+  <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
+    <div id="victory-modal" class="parchment p-8 sm:p-10 rounded-3xl text-center hidden flex-col items-center w-full max-w-md">
+      <h2 class="text-4xl sm:text-5xl font-black text-violet-800 mb-4">魔法考试通过！</h2>
+      <p id="victory-message" class="text-xl sm:text-2xl text-stone-900 mb-8 leading-relaxed"></p>
+      <button onclick="location.reload()" class="bg-violet-700 hover:bg-violet-800 text-white font-black py-3 px-8 rounded-xl text-xl btn">再来一局</button>
     </div>
 
-    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4">
-        <div id="victory-modal" class="modal-content p-8 sm:p-10 rounded-2xl text-center hidden flex-col items-center w-full max-w-md">
-            <h2 class="text-4xl sm:text-5xl font-bold text-yellow-500 mb-4">破案成功！</h2>
-            <p id="victory-message" class="text-xl sm:text-2xl text-gray-800 mb-8 leading-relaxed"></p>
-            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl text-xl btn">再来一局</button>
-        </div>
-
-        <div id="steal-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden w-full max-w-lg">
-            <h2 class="text-2xl sm:text-3xl font-bold text-red-700 mb-4">小偷干扰</h2>
-            <p class="text-lg sm:text-xl text-gray-700 mb-6">选择一项调查资源进行截取！</p>
-            <div id="steal-options" class="space-y-3 mb-2 max-h-60 overflow-y-auto"></div>
-        </div>
-
-        <div id="choice-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden w-full max-w-lg">
-            <h2 id="choice-title" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4"></h2>
-            <p id="choice-prompt" class="text-lg sm:text-xl text-gray-700 mb-6 leading-relaxed"></p>
-            <div id="choice-options" class="space-y-3 max-h-72 overflow-y-auto"></div>
-        </div>
-
-        <div id="case-card-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden flex-col items-center w-full max-w-lg">
-            <h2 class="text-2xl sm:text-3xl font-bold text-emerald-700 mb-4">案件卡</h2>
-            <div id="case-card-content" class="text-gray-800 mb-6 leading-relaxed"></div>
-            <button id="case-card-ok-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-xl text-lg btn">确定</button>
-        </div>
-
-        <div id="final-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden flex-col items-center w-full max-w-lg">
-            <h2 class="text-3xl font-bold text-slate-800 mb-4">发起最终指认</h2>
-            <p id="final-message" class="text-xl text-gray-800 mb-6 leading-relaxed"></p>
-            <div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 mb-6 text-left w-full">
-                系统将自动判断你选择的嫌疑人是否为本局真凶；指认失败会失去 1 份证据，并继续游戏。
-            </div>
-            <div class="w-full flex flex-col gap-3">
-                <button id="final-confirm-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl text-lg btn">确认指认</button>
-                <button id="final-cancel-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl text-lg btn">返回继续调查</button>
-            </div>
-        </div>
-
-        <div id="notebook-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden flex-col items-center w-full max-w-3xl">
-            <h2 id="notebook-title" class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4"></h2>
-            <div id="notebook-summary" class="text-gray-700 mb-4 text-sm"></div>
-            <div class="w-full grid md:grid-cols-2 gap-4 text-left max-h-[60vh] overflow-y-auto">
-                <div>
-                    <div class="font-bold text-blue-700 mb-2">● 线索卡</div>
-                    <div id="notebook-clues" class="space-y-3"></div>
-                </div>
-                <div>
-                    <div class="font-bold text-amber-700 mb-2">◆ 证据卡</div>
-                    <div id="notebook-evidence" class="space-y-3"></div>
-                </div>
-            </div>
-            <button id="notebook-close-btn" class="mt-6 bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-xl text-lg btn">关闭笔记本</button>
-        </div>
-
+    <div id="steal-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
+      <h2 class="text-3xl font-black text-red-800 mb-4">龙的挑战</h2>
+      <p class="text-lg text-stone-800 mb-5">选择一项资源进行抢夺。若对方有魔法护盾，将自动抵消。</p>
+      <div id="steal-options" class="space-y-3 max-h-72 overflow-y-auto"></div>
     </div>
 
-    <script>
-        window.onload = function() {
-            const setupScreen = document.getElementById('setup-screen');
-            const gameScreen = document.getElementById('game-screen');
-            const teamCountSelect = document.getElementById('team-count');
-            const teamNamesContainer = document.getElementById('team-names-container');
-            const startGameBtn = document.getElementById('start-game-btn');
-            const actionPrompt = document.getElementById('action-prompt');
-            const teamsInfoContainer = document.getElementById('teams-info-container');
-            const wheel = document.getElementById('wheel');
-            const startRoundBtn = document.getElementById('start-round-btn');
-            const spinBtn = document.getElementById('spin-btn');
-            const modalOverlay = document.getElementById('modal-overlay');
-            const victoryModal = document.getElementById('victory-modal');
-            const victoryMessage = document.getElementById('victory-message');
-            const stealModal = document.getElementById('steal-modal');
-            const stealOptions = document.getElementById('steal-options');
-            const answerControls = document.getElementById('answer-controls');
-            const correctBtn = document.getElementById('correct-btn');
-            const incorrectBtn = document.getElementById('incorrect-btn');
-            const rulesContainer = document.getElementById('rules-container');
-            const backToSetupBtn = document.getElementById('back-to-setup-btn');
-            const choiceModal = document.getElementById('choice-modal');
-            const choiceTitle = document.getElementById('choice-title');
-            const choicePrompt = document.getElementById('choice-prompt');
-            const choiceOptions = document.getElementById('choice-options');
-            const caseCardModal = document.getElementById('case-card-modal');
-            const caseCardContent = document.getElementById('case-card-content');
-            const caseCardOkBtn = document.getElementById('case-card-ok-btn');
-            const finalModal = document.getElementById('final-modal');
-            const finalMessage = document.getElementById('final-message');
-            const finalConfirmBtn = document.getElementById('final-confirm-btn');
-            const finalCancelBtn = document.getElementById('final-cancel-btn');
-            const notebookModal = document.getElementById('notebook-modal');
-            const notebookTitle = document.getElementById('notebook-title');
-            const notebookSummary = document.getElementById('notebook-summary');
-            const notebookClues = document.getElementById('notebook-clues');
-            const notebookEvidence = document.getElementById('notebook-evidence');
-            const notebookCloseBtn = document.getElementById('notebook-close-btn');
+    <div id="choice-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
+      <h2 id="choice-title" class="text-3xl font-black text-violet-800 mb-4"></h2>
+      <p id="choice-prompt" class="text-lg text-stone-800 mb-5 leading-relaxed"></p>
+      <div id="choice-options" class="space-y-3 max-h-72 overflow-y-auto"></div>
+    </div>
 
-            let teams = [];
-            let currentPlayerIndex = 0;
-            let isSpinning = false;
-            let isBonusQuestion = false;
-            let isExtraSpinQuestion = false;
-            let currentWheelRotation = 0;
-            let pendingAccuseTeamIndex = null;
-            let pendingSuspectName = null;
-            let trueCulprit = null;
-            let clueDeck = [];
-            let evidenceDeck = [];
-            const defaultNames = ["福尔摩斯", "华生", "柯南", "波洛", "小Q", "阿加莎"];
+    <div id="spell-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-lg">
+      <h2 class="text-3xl font-black text-violet-800 mb-4">咒语卡</h2>
+      <div id="spell-card-content" class="text-stone-900 mb-6 leading-relaxed"></div>
+      <button id="spell-ok-btn" class="bg-violet-700 hover:bg-violet-800 text-white font-black py-3 px-8 rounded-xl text-lg btn">释放咒语</button>
+    </div>
 
-            const suspects = [
-                { name: '管家', en: 'The butler', place: 'kitchen', placeZh: '厨房', wear: 'a black hat', wearZh: '黑帽子', item: 'a silver key', itemZh: '银钥匙' },
-                { name: '女演员', en: 'The actress', place: 'garden', placeZh: '花园', wear: 'a red scarf', wearZh: '红围巾', item: 'a perfume bottle', itemZh: '香水瓶' },
-                { name: '老教授', en: 'The professor', place: 'study', placeZh: '书房', wear: 'glasses', wearZh: '眼镜', item: 'a notebook', itemZh: '笔记本' },
-                { name: '厨师', en: 'The chef', place: 'dining room', placeZh: '餐厅', wear: 'a white apron', wearZh: '白围裙', item: 'a wooden spoon', itemZh: '木勺' },
-            ];
+    <div id="final-modal" class="parchment p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-lg">
+      <h2 class="text-3xl font-black text-violet-800 mb-4">终极魔法考试</h2>
+      <p id="final-message" class="text-xl text-stone-900 mb-6 leading-relaxed"></p>
+      <div class="w-full flex flex-col gap-3">
+        <button id="final-success-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-6 rounded-xl text-lg btn">考试通过</button>
+        <button id="final-fail-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 px-6 rounded-xl text-lg btn">考试失败</button>
+        <button id="final-cancel-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-black py-3 px-6 rounded-xl text-lg btn">暂不考试</button>
+      </div>
+    </div>
+  </div>
 
-            const wheelSections = [
-                { result: 'clue', symbol: '●', label: '线索' },
-                { result: 'evidence', symbol: '◆', label: '证据' },
-                { result: 'badge', symbol: '★', label: '徽章' },
-                { result: 'thief', symbol: '×', label: '小偷' },
-                { result: 'shield', symbol: '□', label: '防偷' },
-                { result: 'mystery', symbol: '?', label: '案件卡' },
-            ];
+<script>
+window.onload = function(){
+  const setupScreen = document.getElementById('setup-screen');
+  const gameScreen = document.getElementById('game-screen');
+  const teamCountSelect = document.getElementById('team-count');
+  const teamNamesContainer = document.getElementById('team-names-container');
+  const startGameBtn = document.getElementById('start-game-btn');
+  const actionPrompt = document.getElementById('action-prompt');
+  const teamsInfoContainer = document.getElementById('teams-info-container');
+  const wheel = document.getElementById('wheel');
+  const startRoundBtn = document.getElementById('start-round-btn');
+  const spinBtn = document.getElementById('spin-btn');
+  const modalOverlay = document.getElementById('modal-overlay');
+  const victoryModal = document.getElementById('victory-modal');
+  const victoryMessage = document.getElementById('victory-message');
+  const stealModal = document.getElementById('steal-modal');
+  const stealOptions = document.getElementById('steal-options');
+  const choiceModal = document.getElementById('choice-modal');
+  const choiceTitle = document.getElementById('choice-title');
+  const choicePrompt = document.getElementById('choice-prompt');
+  const choiceOptions = document.getElementById('choice-options');
+  const spellModal = document.getElementById('spell-modal');
+  const spellCardContent = document.getElementById('spell-card-content');
+  const spellOkBtn = document.getElementById('spell-ok-btn');
+  const finalModal = document.getElementById('final-modal');
+  const finalMessage = document.getElementById('final-message');
+  const finalSuccessBtn = document.getElementById('final-success-btn');
+  const finalFailBtn = document.getElementById('final-fail-btn');
+  const finalCancelBtn = document.getElementById('final-cancel-btn');
+  const answerControls = document.getElementById('answer-controls');
+  const correctBtn = document.getElementById('correct-btn');
+  const incorrectBtn = document.getElementById('incorrect-btn');
+  const rulesContainer = document.getElementById('rules-container');
+  const backToSetupBtn = document.getElementById('back-to-setup-btn');
 
-            const caseCards = [
-                { symbol: '○', name: '手电筒', text: '获得 1 张额外线索卡。', action: () => awardClueCard(currentPlayerIndex, true) },
-                { symbol: '□', name: '手套', text: '获得 1 张防偷卡。', action: () => { teams[currentPlayerIndex].shields += 1; return true; } },
-                { symbol: '∞', name: '时间线', text: '再回答一题，答对后可额外多转一次。', action: () => { startExtraSpinQuestion(); return false; } },
-                { symbol: '◆', name: '鉴定报告', text: '获得 1 张额外证据卡。', action: () => awardEvidenceCard(currentPlayerIndex, true) },
-                { symbol: '▣', name: '密室', text: '指定一队暂停下一轮。', action: () => { chooseTeamToSkip(); return false; } },
-            ];
+  let teams = [];
+  let currentPlayerIndex = 0;
+  let isSpinning = false;
+  let currentWheelRotation = 0;
+  let isExtraSpinQuestion = false;
+  let pendingExamTeamIndex = null;
 
-            const synth = new Tone.Synth().toDestination();
-            const metalSynth = new Tone.MetalSynth({
-                frequency: 150,
-                envelope: { attack: 0.001, decay: 0.4, release: 0.2 },
-                harmonicity: 5.1,
-                modulationIndex: 32,
-                resonance: 4000,
-                octaves: 1.5
-            }).toDestination();
-            function playSound(note, duration = '8n') { try { Tone.start(); synth.triggerAttackRelease(note, duration); } catch (e) {} }
-            function playCoinSound() { try { Tone.start(); metalSynth.triggerAttackRelease("C5", "16n", Tone.now()); } catch(e) {} }
+  const defaultNames = ['星辰学院','月影学院','火焰学院','森林学院','水晶学院','夜鸦学院'];
+  const wheelSections = [
+    {result:'book', symbol:'✦', label:'魔法书', deg:80},      // 22.2%：基础资源，需求量最高
+    {result:'gem', symbol:'◆', label:'魔法宝石', deg:80},    // 22.2%：核心资源，也可兑换
+    {result:'wand', symbol:'★', label:'魔杖', deg:50},       // 13.9%：强力资源，概率中等偏低
+    {result:'dragon', symbol:'×', label:'龙的挑战', deg:65}, // 18.1%：增加PK感
+    {result:'shield', symbol:'□', label:'魔法护盾', deg:25}, // 6.9%：保护道具，避免过多
+    {result:'spell', symbol:'?', label:'咒语卡', deg:60}     // 16.7%：随机事件，保持惊喜
+  ];
 
-            function shuffle(array) {
-                const arr = [...array];
-                for (let i = arr.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
-                }
-                return arr;
-            }
+  // --- 魔法音效系统 ---
+  const synth = new Tone.Synth({
+    oscillator:{type:'triangle'},
+    envelope:{attack:0.01, decay:0.18, sustain:0.25, release:0.45}
+  }).toDestination();
+  const pluckSynth = new Tone.PluckSynth({attackNoise:0.7, dampening:4200, resonance:0.82}).toDestination();
+  const metalSynth = new Tone.MetalSynth({
+    frequency:180,
+    envelope:{attack:.001,decay:.35,release:.2},
+    harmonicity:4.5,
+    modulationIndex:26,
+    resonance:3500,
+    octaves:1.4
+  }).toDestination();
+  const dragonSynth = new Tone.MembraneSynth({
+    pitchDecay:0.06,
+    octaves:5,
+    oscillator:{type:'sine'},
+    envelope:{attack:0.001, decay:0.55, sustain:0.02, release:0.25}
+  }).toDestination();
+  const magicVolume = new Tone.Volume(-4).toDestination();
+  synth.connect(magicVolume);
+  pluckSynth.connect(magicVolume);
+  metalSynth.connect(magicVolume);
+  dragonSynth.connect(magicVolume);
 
-            function updateTeamNameInputs() {
-                const count = parseInt(teamCountSelect.value);
-                teamNamesContainer.innerHTML = '';
-                for (let i = 0; i < count; i++) {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = `team-name-${i}`;
-                    input.placeholder = `侦探队 ${i + 1} 名称`;
-                    input.value = `${defaultNames[i]}侦探队`;
-                    input.className = 'w-full p-3 text-lg border-2 border-gray-300 rounded-lg';
-                    teamNamesContainer.appendChild(input);
-                }
-            }
+  async function unlockAudio(){
+    try{
+      if(Tone.context.state !== 'running') await Tone.start();
+    }catch(e){}
+  }
+  function playSound(note,duration='8n'){
+    try{ unlockAudio(); synth.triggerAttackRelease(note,duration); }catch(e){}
+  }
+  function playMagic(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      metalSynth.triggerAttackRelease('C5','16n',now);
+      pluckSynth.triggerAttackRelease('E5','16n',now+0.08);
+      pluckSynth.triggerAttackRelease('G5','16n',now+0.16);
+    }catch(e){}
+  }
+  function playCorrectSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      ['C5','E5','G5'].forEach((n,i)=>synth.triggerAttackRelease(n,'16n',now+i*0.09));
+    }catch(e){}
+  }
+  function playWrongSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      synth.triggerAttackRelease('C3','8n',now);
+      synth.triggerAttackRelease('G2','8n',now+0.18);
+    }catch(e){}
+  }
+  function playSpinSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      ['C4','D4','E4','G4','A4','C5','A4','G4','E4','D4','C4'].forEach((n,i)=>{
+        pluckSynth.triggerAttackRelease(n,'32n',now+i*0.08);
+      });
+    }catch(e){}
+  }
+  function playSpellSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      ['D5','F5','A5','C6'].forEach((n,i)=>synth.triggerAttackRelease(n,'16n',now+i*0.08));
+      metalSynth.triggerAttackRelease('A4','16n',now+0.22);
+    }catch(e){}
+  }
+  function playShieldSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      synth.triggerAttackRelease('G4','8n',now);
+      synth.triggerAttackRelease('C5','8n',now+0.12);
+      metalSynth.triggerAttackRelease('E5','16n',now+0.2);
+    }catch(e){}
+  }
+  function playDragonSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      dragonSynth.triggerAttackRelease('C2','8n',now);
+      dragonSynth.triggerAttackRelease('G1','8n',now+0.22);
+    }catch(e){}
+  }
+  function playVictorySound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      ['C5','E5','G5','C6','G5','C6'].forEach((n,i)=>synth.triggerAttackRelease(n,'8n',now+i*0.12));
+      metalSynth.triggerAttackRelease('C6','8n',now+0.45);
+    }catch(e){}
+  }
+  function playExamFailSound(){
+    try{
+      unlockAudio();
+      const now=Tone.now();
+      ['A3','F3','D3'].forEach((n,i)=>synth.triggerAttackRelease(n,'8n',now+i*0.12));
+    }catch(e){}
+  }
 
-            function buildCaseDecks(resetCulprit = true) {
-                if (resetCulprit || !trueCulprit) {
-                    trueCulprit = suspects[Math.floor(Math.random() * suspects.length)];
-                }
-                const clueCards = [];
-                const evidenceCards = [];
-                const others = suspects.filter(s => s.name !== trueCulprit.name);
+  function makeTeam(name){return {name,books:0,wands:0,gems:0,shields:0,potions:0,skipTurns:0};}
+  function canTakeExam(t){return t.books>=2 && t.wands>=1 && t.gems>=1;}
+  function labels(){return {books:'魔法书',gems:'魔法宝石',wands:'魔杖',potions:'魔法药水'};}
 
-                clueCards.push(
-                    {
-                        title: '地点线索',
-                        en: `The thief was near the ${trueCulprit.place}.`,
-                        zh: `小偷当时在${trueCulprit.placeZh}附近。`
-                    },
-                    {
-                        title: '穿着线索',
-                        en: `The thief wore ${trueCulprit.wear}.`,
-                        zh: `小偷穿着${trueCulprit.wearZh}。`
-                    },
-                    {
-                        title: '物品线索',
-                        en: `The thief carried ${trueCulprit.item}.`,
-                        zh: `小偷携带着${trueCulprit.itemZh}。`
-                    },
-                    {
-                        title: '排除线索',
-                        en: `The thief was not near the ${others[0].place}.`,
-                        zh: `小偷不在${others[0].placeZh}附近。`
-                    },
-                    {
-                        title: '排除线索',
-                        en: `The thief did not wear ${others[1].wear}.`,
-                        zh: `小偷没有穿戴${others[1].wearZh}。`
-                    },
-                    {
-                        title: '排除线索',
-                        en: `The thief did not carry ${others[2].item}.`,
-                        zh: `小偷没有携带${others[2].itemZh}。`
-                    },
-                    {
-                        title: '时间线索',
-                        en: `A witness saw the thief close to the ${trueCulprit.place} after dinner.`,
-                        zh: `有目击者看到晚餐后，小偷出现在${trueCulprit.placeZh}附近。`
-                    },
-                    {
-                        title: '补充线索',
-                        en: `The thief's look matched ${trueCulprit.wear}.`,
-                        zh: `小偷的外表特征与${trueCulprit.wearZh}相符。`
-                    },
-                    {
-                        title: '补充线索',
-                        en: `A useful object near the scene was ${trueCulprit.item}.`,
-                        zh: `案发现场附近发现的关键物品是${trueCulprit.itemZh}。`
-                    }
-                );
+  const spellCards = [
+    {symbol:'L', name:'Lumos 光亮咒', text:'魔法书页自动发光，获得 1 本魔法书。', action:()=>{teams[currentPlayerIndex].books+=1; return true;}},
+    {symbol:'P', name:'Protego 防护咒', text:'召唤防护结界，获得 1 个魔法护盾。', action:()=>{teams[currentPlayerIndex].shields+=1; return true;}},
+    {symbol:'A', name:'Accio 召唤咒', text:'从其他学院召唤 1 个魔法宝石。', action:()=>{chooseTeamToStealGem(); return false;}},
+    {symbol:'W', name:'Wingardium 漂浮咒', text:'再回答一道题，答对后可以额外转动一次魔法阵。', action:()=>{startExtraSpinQuestion(); return false;}},
+    {symbol:'O', name:'Obliviate 遗忘咒', text:'指定一个学院失去 1 本魔法书。', action:()=>{chooseTeamToLoseBook(); return false;}},
+    {symbol:'F', name:'Felix 幸运咒', text:'随机获得 1 个魔法资源。', action:()=>{giveRandomResource(currentPlayerIndex); return true;}},
+    {symbol:'M', name:'Moon Potion 月光药水', text:'获得 1 瓶魔法药水，可在商店兑换资源。', action:()=>{teams[currentPlayerIndex].potions+=1; return true;}}
+  ];
 
-                suspects.forEach(suspect => {
-                    evidenceCards.push(
-                        {
-                            title: '身份证据',
-                            en: `${suspect.en} is the one who stays near the ${suspect.place}.`,
-                            zh: `在${suspect.placeZh}附近活动的人是${suspect.name}。`
-                        },
-                        {
-                            title: '身份证据',
-                            en: `${suspect.en} is the one with ${suspect.wear}.`,
-                            zh: `拥有${suspect.wearZh}的人是${suspect.name}。`
-                        },
-                        {
-                            title: '身份证据',
-                            en: `${suspect.en} is the one carrying ${suspect.item}.`,
-                            zh: `携带${suspect.itemZh}的人是${suspect.name}。`
-                        }
-                    );
-                });
+  function updateTeamNameInputs(){
+    const count = parseInt(teamCountSelect.value);
+    teamNamesContainer.innerHTML='';
+    for(let i=0;i<count;i++){
+      const input=document.createElement('input');
+      input.type='text'; input.id=`team-name-${i}`; input.value=defaultNames[i];
+      input.className='w-full p-3 text-lg border-2 border-amber-300 rounded-xl bg-slate-950/80 text-amber-100 placeholder:text-violet-200';
+      teamNamesContainer.appendChild(input);
+    }
+  }
 
-                clueDeck = shuffle(clueCards);
-                evidenceDeck = shuffle(evidenceCards);
-            }
+  function setupGame(){
+    const count=parseInt(teamCountSelect.value);
+    teams=[];
+    for(let i=0;i<count;i++){
+      const input=document.getElementById(`team-name-${i}`);
+      teams.push(makeTeam(input.value.trim() || `魔法学院 ${i+1}`));
+    }
+    setupScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    gameScreen.classList.add('flex');
+    currentPlayerIndex=-1;
+    positionWheelSymbols();
+    updateUI();
+    actionPrompt.textContent='请点击“开始游戏”，开启第一轮魔法试炼！';
+    playSpellSound();
+    rulesContainer.innerHTML='<p class="text-sm font-bold">胜利条件：✦魔法书 x2 + ★魔杖 x1 + ◆宝石 x1，然后参加终极魔法考试。</p><p class="text-xs mt-1">转盘概率：✦22.2% / ◆22.2% / ★13.9% / ×18.1% / □6.9% / ?16.7%。◆x3 可换 ★；◆x2 可换 □；✦x3 可换 ◆；☽x2 可换 ◆。</p>';
+  }
 
-            function createTeam(name) {
-                return {
-                    name,
-                    clues: 0,
-                    evidence: 0,
-                    badges: 0,
-                    shields: 0,
-                    skipTurns: 0,
-                    clueNotes: [],
-                    evidenceNotes: []
-                };
-            }
+  function positionWheelSymbols(){
+    wheel.innerHTML='';
+    const r=wheel.offsetWidth/2;
+    const size=Math.max(42,r*.20);
+    const trans=r*.66;
+    let startAngle = 0;
+    wheelSections.forEach((section)=>{
+      const angle=startAngle + section.deg / 2;
+      startAngle += section.deg;
+      const div=document.createElement('div');
+      div.className='wheel-section-content';
+      const transform=`translate(-50%, -50%) rotate(${angle}deg) translateY(-${trans}px) rotate(-${angle}deg)`;
+      div.innerHTML=`<span class="wheel-symbol" style="font-size:${size}px; transform:${transform};">${section.symbol}</span>`;
+      wheel.appendChild(div);
+    });
+  }
 
-            function startSetupGame() {
-                const count = parseInt(teamCountSelect.value);
-                teams = [];
-                for (let i = 0; i < count; i++) {
-                    const nameInput = document.getElementById(`team-name-${i}`);
-                    teams.push(createTeam(nameInput.value.trim() || `侦探队 ${i + 1}`));
-                }
-                buildCaseDecks();
-                setupGame();
-            }
+  function updateUI(){
+    teamsInfoContainer.innerHTML='';
+    const table=document.createElement('table');
+    table.className='teams-table text-base sm:text-lg';
+    let html='<thead><tr><th>魔法资源</th>';
+    teams.forEach((t,i)=>{html+=`<th class="${i===currentPlayerIndex?'active-col':''}">${t.name}${t.skipTurns>0?' <span class="text-xs text-red-300">暂停</span>':''}</th>`});
+    html+='</tr></thead><tbody>';
+    const rows=[['✦','魔法书','books','/ 2'],['★','魔杖','wands','/ 1'],['◆','魔法宝石','gems','/ 1'],['□','魔法护盾','shields',''],['☽','魔法药水','potions','']];
+    rows.forEach(([sym,name,key,goal])=>{
+      html+=`<tr><td class="asset-name"><span class="asset-symbol">${sym}</span> ${name}</td>`;
+      teams.forEach((t,i)=>{html+=`<td class="${i===currentPlayerIndex?'active-col':''}">${t[key]} ${goal}</td>`});
+      html+='</tr>';
+    });
+    html+='<tr><td class="asset-name">魔法商店</td>';
+    teams.forEach((t,i)=>{
+      html+=`<td class="${i===currentPlayerIndex?'active-col':''}"><div class="flex flex-col gap-2 items-center">
+        <button class="shop-btn bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="gemToWand" ${t.gems<3?'disabled':''}>3◆换1★</button>
+        <button class="shop-btn bg-indigo-500 hover:bg-indigo-600 text-white font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="gemToShield" ${t.gems<2?'disabled':''}>2◆换1□</button>
+        <button class="shop-btn bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="bookToGem" ${t.books<3?'disabled':''}>3✦换1◆</button>
+        <button class="shop-btn bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-black py-1 px-2 rounded-md text-xs btn" data-index="${i}" data-shop="potionToGem" ${t.potions<2?'disabled':''}>2☽换1◆</button>
+      </div></td>`;
+    });
+    html+='</tr><tr><td class="asset-name">最终考试</td>';
+    teams.forEach((t,i)=>{
+      html+=`<td class="${i===currentPlayerIndex?'active-col':''}"><button class="exam-btn bg-red-600 hover:bg-red-700 text-white font-black py-2 px-3 rounded-lg text-sm btn" data-index="${i}" ${!canTakeExam(t)?'disabled':''}>参加考试</button></td>`;
+    });
+    html+='</tr></tbody>';
+    table.innerHTML=html;
+    teamsInfoContainer.appendChild(table);
+    document.querySelectorAll('.shop-btn').forEach(b=>b.addEventListener('click',e=>useShop(parseInt(e.target.dataset.index),e.target.dataset.shop)));
+    document.querySelectorAll('.exam-btn').forEach(b=>b.addEventListener('click',e=>openFinalExam(parseInt(e.target.dataset.index))));
+  }
 
-            function setupGame() {
-                setupScreen.classList.add('hidden');
-                gameScreen.classList.remove('hidden');
-                gameScreen.classList.add('flex');
-                positionWheelSymbols();
-                currentPlayerIndex = -1;
-                updateUI();
-                actionPrompt.textContent = '请点击“开始游戏”按钮，开启第一轮调查！';
-                rulesContainer.innerHTML = '<p class="text-sm font-semibold">获胜条件：集齐 ●线索 x3、◆证据 x1、★徽章 x1 后，点击“指认真凶”。</p><p class="text-xs mt-1">●/◆ 不只是数量，还会获得真实线索卡与证据卡；请点击“查看笔记”辅助推理。</p>';
-            }
+  function startNextTurn(){
+    let safety=0;
+    do{
+      currentPlayerIndex=(currentPlayerIndex+1)%teams.length;
+      safety++;
+      if(teams[currentPlayerIndex].skipTurns>0){
+        teams[currentPlayerIndex].skipTurns-=1;
+        actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】被黑暗森林困住，暂停一轮！`;
+        updateUI();
+      }else break;
+    }while(safety<=teams.length+2);
+    updateUI();
+    actionPrompt.textContent=`轮到【${teams[currentPlayerIndex].name}】回答问题，准备施法！`;
+    spinBtn.disabled=true; isSpinning=false;
+    correctBtn.disabled=false; incorrectBtn.disabled=false;
+    answerControls.classList.remove('hidden'); answerControls.classList.add('flex');
+  }
 
-            function positionWheelSymbols() {
-                wheel.innerHTML = '';
-                const wheelRadius = wheel.offsetWidth / 2;
-                const symbolSize = Math.max(38, wheelRadius * 0.18);
-                const symbolTranslation = wheelRadius * 0.65;
-                wheelSections.forEach((section, index) => {
-                    const angle = 60 * index + 30;
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'wheel-section-content';
-                    const transformStyle = `translate(-50%, -50%) rotate(${angle}deg) translateY(-${symbolTranslation}px) rotate(-${angle}deg)`;
-                    contentDiv.innerHTML = `<span class="wheel-symbol" style="font-size:${symbolSize}px; transform:${transformStyle};">${section.symbol}</span>`;
-                    wheel.appendChild(contentDiv);
-                });
-            }
+  function getWheelResultByAngle(angle){
+    let current = 0;
+    for (const section of wheelSections) {
+      current += section.deg;
+      if (angle < current) return section;
+    }
+    return wheelSections[wheelSections.length - 1];
+  }
 
-            function canAccuse(team) {
-                return team.clues >= 3 && team.evidence >= 1 && team.badges >= 1;
-            }
+  function handleSpinResult(result){
+    isSpinning=false;
+    const t=teams[currentPlayerIndex];
+    actionPrompt.innerHTML=`【${t.name}】转到了：<span class="text-4xl font-black text-amber-200">${result.symbol}</span> ${result.label}`;
+    switch(result.result){
+      case 'book': t.books+=1; playSound('E4'); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
+      case 'gem': t.gems+=1; playMagic(); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
+      case 'wand': t.wands+=1; playSound('A5'); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
+      case 'shield': t.shields+=1; playSound('G5'); updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200); break;
+      case 'dragon': playDragonSound(); handleDragon(); break;
+      case 'spell': playSpellSound(); drawSpellCard(); break;
+    }
+  }
 
-            function getAssetCounts(team) {
-                return `●${team.clues} / ◆${team.evidence} / ★${team.badges} / □${team.shields}`;
-            }
+  function handleDragon(){
+    stealOptions.innerHTML='';
+    let hasTargets=false;
+    teams.forEach((target,idx)=>{
+      if(idx===currentPlayerIndex) return;
+      [['books','魔法书','bg-violet-700 hover:bg-violet-800'],['gems','魔法宝石','bg-cyan-700 hover:bg-cyan-800'],['wands','魔杖','bg-amber-600 hover:bg-amber-700'],['potions','魔法药水','bg-fuchsia-700 hover:bg-fuchsia-800']].forEach(([key,label,cls])=>{
+        if(target[key]>0){
+          hasTargets=true;
+          const btn=document.createElement('button');
+          btn.className=`block w-full ${cls} text-white font-black py-2 px-4 rounded-xl btn mb-2`;
+          btn.textContent=`从【${target.name}】抢夺 1 个${label}${target.shields>0?'（对方有护盾）':''}`;
+          btn.onclick=()=>performSteal(idx,key);
+          stealOptions.appendChild(btn);
+        }
+      });
+    });
+    if(!hasTargets){
+      actionPrompt.textContent='龙盘旋一圈，没有找到可抢夺的资源。';
+      setTimeout(()=>checkReadyAndSwitch(true),1200); return;
+    }
+    const cancel=document.createElement('button');
+    cancel.className='block w-full bg-gray-600 hover:bg-gray-700 text-white font-black py-2 px-4 rounded-xl btn mt-3';
+    cancel.textContent='放弃挑战';
+    cancel.onclick=()=>{closeAllModals(); checkReadyAndSwitch(true);};
+    stealOptions.appendChild(cancel);
+    showModal(stealModal);
+  }
 
-            function updateUI() {
-                teamsInfoContainer.innerHTML = '';
-                const table = document.createElement('table');
-                table.className = 'teams-table text-lg';
+  function performSteal(targetIndex,key){
+    const target=teams[targetIndex], current=teams[currentPlayerIndex];
+    closeAllModals();
+    if(target.shields>0){
+      target.shields-=1;
+      actionPrompt.textContent=`【${target.name}】的魔法护盾抵消了龙的挑战！`;
+      playShieldSound();
+    }else{
+      target[key]-=1; current[key]+=1;
+      actionPrompt.textContent=`【${current.name}】从【${target.name}】抢到了 1 个${labels()[key]}！`;
+      playDragonSound(); if(key==='gems') playMagic();
+    }
+    updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1200);
+  }
 
-                let headerHtml = '<thead><tr><th class="w-1/4">调查资源</th>';
-                teams.forEach((team, index) => {
-                    const skipText = team.skipTurns > 0 ? ' <span class="text-xs text-red-600">暂停</span>' : '';
-                    headerHtml += `<th class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.name}${skipText}</th>`;
-                });
-                headerHtml += '</tr></thead>';
+  function drawSpellCard(){
+    const card=spellCards[Math.floor(Math.random()*spellCards.length)];
+    spellCardContent.innerHTML=`<div class="text-5xl font-black text-violet-800 mb-3">${card.symbol}</div><div class="spell-badge mb-3">${card.name}</div><div class="text-xl font-bold">${card.text}</div>`;
+    showModal(spellModal);
+    spellOkBtn.onclick=()=>{
+      closeAllModals();
+      const normal=card.action();
+      updateUI();
+      if(normal && !isExtraSpinQuestion) setTimeout(()=>checkReadyAndSwitch(true),800);
+    };
+  }
 
-                let bodyHtml = '<tbody>';
-                bodyHtml += '<tr><td class="asset-name"><span class="asset-symbol">●</span> 线索</td>';
-                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.clues} / 3</td>`; });
-                bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name"><span class="asset-symbol">◆</span> 证据</td>';
-                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.evidence} / 1</td>`; });
-                bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name"><span class="asset-symbol">★</span> 徽章</td>';
-                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.badges} / 1</td>`; });
-                bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name"><span class="asset-symbol">□</span> 防偷卡</td>';
-                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.shields}</td>`; });
-                bodyHtml += '</tr>';
-                bodyHtml += '<tr><td class="asset-name">卡片数</td>';
-                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">线索卡 ${team.clueNotes.length}<br>证据卡 ${team.evidenceNotes.length}</td>`; });
-                bodyHtml += '</tr>';
-                bodyHtml += '<tr><td>操作</td>';
-                teams.forEach((team, index) => {
-                    bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">
-                        <div class="flex flex-col gap-2 items-center">
-                            <button class="notebook-btn bg-slate-700 hover:bg-slate-800 text-white font-bold py-1 px-3 rounded-md text-sm btn" data-index="${index}">查看笔记</button>
-                            <button class="buy-badge-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${team.evidence < 3 ? 'disabled' : ''}>用3◆换★</button>
-                            <button class="accuse-btn bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${!canAccuse(team) ? 'disabled' : ''}>指认真凶</button>
-                        </div>
-                    </td>`;
-                });
-                bodyHtml += '</tr></tbody>';
-                table.innerHTML = headerHtml + bodyHtml;
-                teamsInfoContainer.appendChild(table);
+  function chooseTeamToStealGem(){
+    choiceTitle.textContent='Accio 召唤咒';
+    choicePrompt.textContent='选择一个学院，召唤它的 1 个魔法宝石。若对方有护盾，将自动抵消。';
+    choiceOptions.innerHTML='';
+    let any=false;
+    teams.forEach((t,idx)=>{
+      if(idx===currentPlayerIndex || t.gems<=0) return;
+      any=true;
+      const btn=document.createElement('button');
+      btn.className='block w-full bg-cyan-700 hover:bg-cyan-800 text-white font-black py-2 px-4 rounded-xl btn mb-2';
+      btn.textContent=`召唤【${t.name}】的 1 个宝石${t.shields>0?'（有护盾）':''}`;
+      btn.onclick=()=>performSteal(idx,'gems');
+      choiceOptions.appendChild(btn);
+    });
+    if(!any){actionPrompt.textContent='没有可召唤的宝石。'; setTimeout(()=>checkReadyAndSwitch(true),1000); return;}
+    showModal(choiceModal);
+  }
 
-                const suspectBox = document.createElement('div');
-                suspectBox.className = 'mt-4 p-3 rounded-xl bg-white/70 border-2 border-gray-700 text-center';
-                suspectBox.innerHTML = `<div class="font-bold text-gray-800 mb-2">嫌疑人区（本局真凶随机）</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">${suspects.map(s => `<div class="p-2 rounded-lg bg-slate-100 border border-slate-300"><div class="font-bold">${s.name}</div><div class="text-xs text-slate-500">${s.en}</div></div>`).join('')}</div>`;
-                teamsInfoContainer.appendChild(suspectBox);
+  function chooseTeamToLoseBook(){
+    choiceTitle.textContent='Obliviate 遗忘咒';
+    choicePrompt.textContent='选择一个学院，让它遗忘 1 本魔法书。';
+    choiceOptions.innerHTML='';
+    let any=false;
+    teams.forEach((t,idx)=>{
+      if(idx===currentPlayerIndex || t.books<=0) return;
+      any=true;
+      const btn=document.createElement('button');
+      btn.className='block w-full bg-rose-700 hover:bg-rose-800 text-white font-black py-2 px-4 rounded-xl btn mb-2';
+      btn.textContent=`让【${t.name}】失去 1 本魔法书`;
+      btn.onclick=()=>{t.books-=1; closeAllModals(); actionPrompt.textContent=`【${t.name}】遗忘了 1 本魔法书！`; updateUI(); setTimeout(()=>checkReadyAndSwitch(true),1000);};
+      choiceOptions.appendChild(btn);
+    });
+    if(!any){actionPrompt.textContent='没有可影响的魔法书。'; setTimeout(()=>checkReadyAndSwitch(true),1000); return;}
+    showModal(choiceModal);
+  }
 
-                document.querySelectorAll('.buy-badge-btn').forEach(btn => btn.addEventListener('click', (e) => buyBadge(parseInt(e.target.dataset.index))));
-                document.querySelectorAll('.accuse-btn').forEach(btn => btn.addEventListener('click', (e) => openSuspectChoice(parseInt(e.target.dataset.index))));
-                document.querySelectorAll('.notebook-btn').forEach(btn => btn.addEventListener('click', (e) => openNotebook(parseInt(e.target.dataset.index))));
-            }
+  function giveRandomResource(teamIndex){
+    const t=teams[teamIndex];
+    const options=['books','gems','wands','shields','potions'];
+    const key=options[Math.floor(Math.random()*options.length)];
+    t[key]+=1;
+    actionPrompt.textContent=`Felix 幸运咒生效！【${t.name}】获得 1 个${labels()[key] || '魔法护盾'}。`;
+    playMagic();
+  }
 
-            function openNotebook(teamIndex) {
-                const team = teams[teamIndex];
-                notebookTitle.textContent = `【${team.name}】的案件笔记本`;
-                notebookSummary.innerHTML = `当前资源：${getAssetCounts(team)}<br>线索卡 ${team.clueNotes.length} 张，证据卡 ${team.evidenceNotes.length} 张。`;
+  function startExtraSpinQuestion(){
+    isExtraSpinQuestion=true;
+    actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】请回答漂浮咒奖励题，答对可额外转动一次魔法阵！`;
+    answerControls.classList.remove('hidden'); answerControls.classList.add('flex');
+    correctBtn.disabled=false; incorrectBtn.disabled=false;
+  }
 
-                notebookClues.innerHTML = team.clueNotes.length ? team.clueNotes.map((card, i) => `
-                    <div class="note-card">
-                        <div class="mb-1"><span class="tag bg-blue-100 text-blue-700">线索 ${i + 1}</span> <span class="text-slate-500 text-xs">${card.title}</span></div>
-                        <div class="font-semibold">${card.en}</div>
-                        <div class="text-sm text-slate-600 mt-1">${card.zh}</div>
-                    </div>
-                `).join('') : '<div class="text-slate-500 text-sm">还没有获得线索卡。</div>';
+  function useShop(index,type){
+    const t=teams[index];
+    if(type==='gemToWand' && t.gems>=3){t.gems-=3;t.wands+=1; actionPrompt.textContent=`【${t.name}】用 3 个魔法宝石兑换了 1 根魔杖！`;}
+    if(type==='gemToShield' && t.gems>=2){t.gems-=2;t.shields+=1; actionPrompt.textContent=`【${t.name}】用 2 个魔法宝石兑换了 1 个魔法护盾！`;}
+    if(type==='bookToGem' && t.books>=3){t.books-=3;t.gems+=1; actionPrompt.textContent=`【${t.name}】用 3 本魔法书兑换了 1 个魔法宝石！`;}
+    if(type==='potionToGem' && t.potions>=2){t.potions-=2;t.gems+=1; actionPrompt.textContent=`【${t.name}】用 2 瓶魔法药水兑换了 1 个魔法宝石！`;}
+    playMagic(); updateUI(); checkReadyAndSwitch(false);
+  }
 
-                notebookEvidence.innerHTML = team.evidenceNotes.length ? team.evidenceNotes.map((card, i) => `
-                    <div class="note-card evidence-card">
-                        <div class="mb-1"><span class="tag bg-amber-100 text-amber-700">证据 ${i + 1}</span> <span class="text-slate-500 text-xs">${card.title}</span></div>
-                        <div class="font-semibold">${card.en}</div>
-                        <div class="text-sm text-slate-600 mt-1">${card.zh}</div>
-                    </div>
-                `).join('') : '<div class="text-slate-500 text-sm">还没有获得证据卡。</div>';
+  function openFinalExam(index){
+    pendingExamTeamIndex=index;
+    finalMessage.innerHTML=`【${teams[index].name}】已集齐魔法资源！<br>请老师出一道终极魔法题，学生答对即通过考试。`;
+    showModal(finalModal);
+  }
 
-                showModal(notebookModal);
-            }
+  function checkReadyAndSwitch(shouldSwitch){
+    updateUI();
+    const t=teams[currentPlayerIndex];
+    if(t && canTakeExam(t)) actionPrompt.textContent=`【${t.name}】已集齐考试条件，可以参加终极魔法考试！`;
+    if(shouldSwitch) setTimeout(startNextTurn,1500);
+  }
 
-            function startNextTurn() {
-                let safety = 0;
-                do {
-                    currentPlayerIndex = (currentPlayerIndex + 1) % teams.length;
-                    safety++;
-                    if (teams[currentPlayerIndex].skipTurns > 0) {
-                        teams[currentPlayerIndex].skipTurns -= 1;
-                        actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】被密室机关困住，暂停一轮！`;
-                        updateUI();
-                    } else {
-                        break;
-                    }
-                } while (safety <= teams.length + 2);
+  function showModal(modal){modalOverlay.style.display='flex'; modal.classList.remove('hidden'); modal.classList.add('flex');}
+  function closeAllModals(){[victoryModal,stealModal,choiceModal,spellModal,finalModal].forEach(m=>{m.classList.add('hidden');m.classList.remove('flex')}); modalOverlay.style.display='none';}
 
-                updateUI();
-                actionPrompt.textContent = `轮到【${teams[currentPlayerIndex].name}】回答问题...`;
-                spinBtn.disabled = true;
-                isSpinning = false;
-                correctBtn.disabled = false;
-                incorrectBtn.disabled = false;
-                answerControls.classList.remove('hidden');
-                answerControls.classList.add('flex');
-            }
-
-            function showModal(modal) {
-                modalOverlay.style.display = 'flex';
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-
-            function closeAllModals(hideOverlay = true) {
-                [victoryModal, stealModal, choiceModal, caseCardModal, finalModal, notebookModal].forEach(m => {
-                    m.classList.add('hidden');
-                    m.classList.remove('flex');
-                });
-                if (hideOverlay) modalOverlay.style.display = 'none';
-            }
-
-            function drawFromDeck(type) {
-                if (type === 'clue') {
-                    if (clueDeck.length === 0) buildCaseDecks(false);
-                    return clueDeck.shift();
-                }
-                if (evidenceDeck.length === 0) buildCaseDecks(false);
-                return evidenceDeck.shift();
-            }
-
-            function awardClueCard(teamIndex, silent = false) {
-                const team = teams[teamIndex];
-                const card = drawFromDeck('clue');
-                team.clues += 1;
-                team.clueNotes.push(card);
-                updateUI();
-                if (!silent) {
-                    actionPrompt.innerHTML = `【${team.name}】获得 1 条线索和 1 张线索卡！<br><span class="text-base">请点击“查看笔记”阅读内容。</span>`;
-                }
-                playSound('E4');
-                return true;
-            }
-
-            function awardEvidenceCard(teamIndex, silent = false) {
-                const team = teams[teamIndex];
-                const card = drawFromDeck('evidence');
-                team.evidence += 1;
-                team.evidenceNotes.push(card);
-                updateUI();
-                if (!silent) {
-                    actionPrompt.innerHTML = `【${team.name}】获得 1 份证据和 1 张证据卡！<br><span class="text-base">请点击“查看笔记”阅读内容。</span>`;
-                }
-                playCoinSound();
-                return true;
-            }
-
-            function removeRandomCard(team, type) {
-                if (type === 'clues' && team.clueNotes.length > 0) {
-                    const idx = Math.floor(Math.random() * team.clueNotes.length);
-                    return team.clueNotes.splice(idx, 1)[0];
-                }
-                if (type === 'evidence' && team.evidenceNotes.length > 0) {
-                    const idx = Math.floor(Math.random() * team.evidenceNotes.length);
-                    return team.evidenceNotes.splice(idx, 1)[0];
-                }
-                return null;
-            }
-
-            function startExtraSpinQuestion() {
-                isExtraSpinQuestion = true;
-                actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】请回答时间线奖励题，答对可多转一次！`;
-                answerControls.classList.remove('hidden');
-                answerControls.classList.add('flex');
-                correctBtn.disabled = false;
-                incorrectBtn.disabled = false;
-            }
-
-            function handleSpinResult(result) {
-                isSpinning = false;
-                const team = teams[currentPlayerIndex];
-                actionPrompt.innerHTML = `【${team.name}】转到了：<span class="text-3xl sm:text-4xl font-bold">${result.symbol}</span> <span class="text-xl">${result.label}</span>`;
-                switch (result.result) {
-                    case 'evidence': awardEvidenceCard(currentPlayerIndex); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-                    case 'clue': awardClueCard(currentPlayerIndex); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-                    case 'thief': handleThief(); return;
-                    case 'badge': team.badges += 1; playSound('A5'); actionPrompt.innerHTML += ' 获得 1 枚侦探徽章！'; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-                    case 'shield': team.shields += 1; playSound('G5'); actionPrompt.innerHTML += ' 获得 1 张防偷卡！'; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-                    case 'mystery': drawCaseCard(); return;
-                }
-            }
-
-            function handleThief() {
-                actionPrompt.innerHTML += ' 小偷干扰！';
-                stealOptions.innerHTML = '';
-                let hasTargets = false;
-                teams.forEach((targetTeam, targetIndex) => {
-                    if (targetIndex === currentPlayerIndex) return;
-                    [
-                        ['evidence', '证据', 'bg-yellow-600 hover:bg-yellow-700'],
-                        ['clues', '线索', 'bg-green-600 hover:bg-green-700'],
-                        ['badges', '徽章', 'bg-blue-600 hover:bg-blue-700']
-                    ].forEach(([assetType, label, cls]) => {
-                        if (targetTeam[assetType] > 0) {
-                            hasTargets = true;
-                            const btn = document.createElement('button');
-                            btn.className = `block w-full ${cls} text-white font-bold py-2 px-4 rounded btn mb-2`;
-                            const shieldText = targetTeam.shields > 0 ? '（对方有防偷卡）' : '';
-                            btn.textContent = `从【${targetTeam.name}】截取 1 个${label}${shieldText}`;
-                            btn.onclick = () => performSteal(targetIndex, assetType);
-                            stealOptions.appendChild(btn);
-                        }
-                    });
-                });
-
-                if (!hasTargets) {
-                    actionPrompt.textContent = '没有可截取的目标！';
-                    setTimeout(() => checkReadyAndSwitch(true), 1200);
-                    return;
-                }
-
-                const cancelBtn = document.createElement('button');
-                cancelBtn.className = 'block w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded btn mt-4';
-                cancelBtn.textContent = '放弃截取';
-                cancelBtn.onclick = () => { closeAllModals(); checkReadyAndSwitch(true); };
-                stealOptions.appendChild(cancelBtn);
-                showModal(stealModal);
-            }
-
-            function performSteal(targetIndex, assetType) {
-                const target = teams[targetIndex];
-                const current = teams[currentPlayerIndex];
-                closeAllModals();
-                if (target.shields > 0) {
-                    target.shields -= 1;
-                    actionPrompt.textContent = `【${target.name}】使用了 1 张防偷卡，成功抵消小偷干扰！`;
-                    playSound('F4');
-                    updateUI();
-                } else {
-                    const labels = { clues: '线索', evidence: '证据', badges: '徽章' };
-                    target[assetType] -= 1;
-                    current[assetType] += 1;
-                    if (assetType === 'clues') {
-                        const card = removeRandomCard(target, 'clues');
-                        if (card) current.clueNotes.push(card);
-                    }
-                    if (assetType === 'evidence') {
-                        const card = removeRandomCard(target, 'evidence');
-                        if (card) current.evidenceNotes.push(card);
-                    }
-                    actionPrompt.textContent = `【${current.name}】从【${target.name}】截取了 1 个${labels[assetType]}！`;
-                    playSound('C3');
-                    if (assetType === 'evidence') playCoinSound();
-                    updateUI();
-                }
-                setTimeout(() => checkReadyAndSwitch(true), 1200);
-            }
-
-            function buyBadge(teamIndex) {
-                const team = teams[teamIndex];
-                if (team.evidence >= 3) {
-                    team.evidence -= 3;
-                    team.badges += 1;
-                    if (team.evidenceNotes.length > 0) {
-                        team.evidenceNotes.splice(0, Math.min(3, team.evidenceNotes.length));
-                    }
-                    playSound('G5');
-                    actionPrompt.textContent = `【${team.name}】用 3 份证据兑换了 1 枚侦探徽章！`;
-                    updateUI();
-                    checkReadyAndSwitch(false);
-                }
-            }
-
-            function drawCaseCard() {
-                const card = caseCards[Math.floor(Math.random() * caseCards.length)];
-                playSound('B4');
-                caseCardContent.innerHTML = `<div class="text-5xl mb-3 font-bold">${card.symbol}</div><div class="font-bold mb-2 text-xl">${card.name}</div><div class="text-lg">${card.text}</div>`;
-                showModal(caseCardModal);
-                caseCardOkBtn.onclick = () => {
-                    closeAllModals();
-                    const shouldContinueNormally = card.action();
-                    updateUI();
-                    if (shouldContinueNormally && !isExtraSpinQuestion) {
-                        setTimeout(() => checkReadyAndSwitch(true), 800);
-                    }
-                };
-            }
-
-            function chooseTeamToSkip() {
-                choiceTitle.textContent = '密室机关';
-                choicePrompt.textContent = '指定一队暂停下一轮。';
-                choiceOptions.innerHTML = '';
-                let hasOtherTeams = false;
-                teams.forEach((team, index) => {
-                    if (index === currentPlayerIndex) return;
-                    hasOtherTeams = true;
-                    const btn = document.createElement('button');
-                    btn.className = 'block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded btn mb-2';
-                    btn.textContent = `让【${team.name}】暂停一轮`;
-                    btn.onclick = () => {
-                        teams[index].skipTurns += 1;
-                        closeAllModals();
-                        actionPrompt.textContent = `【${team.name}】被密室机关困住，下一轮暂停！`;
-                        updateUI();
-                        setTimeout(() => checkReadyAndSwitch(true), 1000);
-                    };
-                    choiceOptions.appendChild(btn);
-                });
-                if (!hasOtherTeams) {
-                    actionPrompt.textContent = '没有可指定的队伍。';
-                    setTimeout(() => checkReadyAndSwitch(true), 1000);
-                    return;
-                }
-                showModal(choiceModal);
-            }
-
-            function openSuspectChoice(teamIndex) {
-                pendingAccuseTeamIndex = teamIndex;
-                choiceTitle.textContent = '指认真凶';
-                choicePrompt.textContent = `【${teams[teamIndex].name}】请选择一名嫌疑人。系统会自动判断是否抓到本局真凶。`;
-                choiceOptions.innerHTML = '';
-                suspects.forEach(suspect => {
-                    const btn = document.createElement('button');
-                    btn.className = 'block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded btn mb-2';
-                    btn.textContent = suspect.name;
-                    btn.onclick = () => openFinalQuestion(teamIndex, suspect.name);
-                    choiceOptions.appendChild(btn);
-                });
-                const cancelBtn = document.createElement('button');
-                cancelBtn.className = 'block w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded btn mt-4';
-                cancelBtn.textContent = '继续调查，暂不指认';
-                cancelBtn.onclick = closeAllModals;
-                choiceOptions.appendChild(cancelBtn);
-                showModal(choiceModal);
-            }
-
-            function openFinalQuestion(teamIndex, suspectName) {
-                pendingAccuseTeamIndex = teamIndex;
-                pendingSuspectName = suspectName;
-                closeAllModals(false);
-                finalMessage.innerHTML = `【${teams[teamIndex].name}】将要指认 <span class="font-bold text-red-700">${suspectName}</span> 是真凶。<br>请确认是否提交这次指认。`;
-                showModal(finalModal);
-            }
-
-            function resolveAccusation() {
-                const team = teams[pendingAccuseTeamIndex];
-                const success = pendingSuspectName === trueCulprit.name;
-                closeAllModals(false);
-                if (success) {
-                    victoryMessage.innerHTML = `恭喜 ${team.name} 成功抓到真凶：${trueCulprit.name}！<br><span class="text-base text-slate-600">系统已自动判定本局答案。</span>`;
-                    showModal(victoryModal);
-                    playSound('C6', '2n');
-                } else {
-                    if (team.evidence > 0) team.evidence -= 1;
-                    if (team.evidenceNotes.length > 0) team.evidenceNotes.pop();
-                    closeAllModals();
-                    actionPrompt.textContent = `【${team.name}】指认失败！真正的线索还不够充分，失去 1 份证据，继续调查！`;
-                    updateUI();
-                    setTimeout(startNextTurn, 1200);
-                }
-            }
-
-            function checkReadyAndSwitch(shouldSwitch) {
-                updateUI();
-                const readyTeam = teams[currentPlayerIndex];
-                if (readyTeam && canAccuse(readyTeam)) {
-                    actionPrompt.textContent = `【${readyTeam.name}】已满足指认条件！可以点击“指认真凶”，也可以继续调查收集更多卡片。`;
-                }
-                if (shouldSwitch) setTimeout(startNextTurn, 1500);
-            }
-
-            teamCountSelect.addEventListener('change', updateTeamNameInputs);
-            startGameBtn.addEventListener('click', startSetupGame);
-
-            startRoundBtn.addEventListener('click', () => {
-                startRoundBtn.classList.add('hidden');
-                startNextTurn();
-            });
-
-            correctBtn.addEventListener('click', () => {
-                correctBtn.disabled = true;
-                incorrectBtn.disabled = true;
-                if (isBonusQuestion) {
-                    isBonusQuestion = false;
-                    awardEvidenceCard(currentPlayerIndex, true);
-                    awardEvidenceCard(currentPlayerIndex, true);
-                    actionPrompt.innerHTML = `奖励题回答正确！【${teams[currentPlayerIndex].name}】额外获得 2 份证据与 2 张证据卡。`;
-                    answerControls.classList.add('hidden');
-                    updateUI();
-                    setTimeout(() => checkReadyAndSwitch(true), 1200);
-                } else if (isExtraSpinQuestion) {
-                    isExtraSpinQuestion = false;
-                    playSound('C5');
-                    actionPrompt.textContent = '时间线整理成功！请再次转动转盘。';
-                    answerControls.classList.add('hidden');
-                    spinBtn.disabled = false;
-                } else {
-                    playSound('C5');
-                    actionPrompt.textContent = '回答正确！请点击“寻找线索”转动转盘！';
-                    spinBtn.disabled = false;
-                    answerControls.classList.add('hidden');
-                }
-            });
-
-            incorrectBtn.addEventListener('click', () => {
-                correctBtn.disabled = true;
-                incorrectBtn.disabled = true;
-                answerControls.classList.add('hidden');
-                playSound('C3', '4n');
-                isBonusQuestion = false;
-                isExtraSpinQuestion = false;
-                actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】回答错误，机会轮空！`;
-                setTimeout(startNextTurn, 1200);
-            });
-
-            spinBtn.addEventListener('click', () => {
-                if (isSpinning) return;
-                isSpinning = true;
-                spinBtn.disabled = true;
-                const randomExtraSpins = Math.floor(Math.random() * 6) + 5;
-                const randomStopAngle = Math.floor(Math.random() * 360);
-                const totalNewRotation = (randomExtraSpins * 360) + randomStopAngle;
-                currentWheelRotation += totalNewRotation;
-                wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
-                const finalAngle = currentWheelRotation % 360;
-                const winningAngle = (360 - finalAngle) % 360;
-                const sectionIndex = Math.floor(winningAngle / 60);
-                const result = wheelSections[sectionIndex];
-                setTimeout(() => handleSpinResult(result), 4100);
-            });
-
-            notebookCloseBtn.addEventListener('click', closeAllModals);
-            finalCancelBtn.addEventListener('click', closeAllModals);
-            finalConfirmBtn.addEventListener('click', resolveAccusation);
-
-            window.addEventListener('resize', positionWheelSymbols);
-            backToSetupBtn.addEventListener('click', () => location.reload());
-
-            updateTeamNameInputs();
-        };
-    </script>
+  teamCountSelect.addEventListener('change',updateTeamNameInputs);
+  startGameBtn.addEventListener('click',()=>{unlockAudio(); setupGame();});
+  startRoundBtn.addEventListener('click',()=>{startRoundBtn.classList.add('hidden'); startNextTurn();});
+  correctBtn.addEventListener('click',()=>{
+    correctBtn.disabled=true; incorrectBtn.disabled=true;
+    if(isExtraSpinQuestion){
+      isExtraSpinQuestion=false;
+      actionPrompt.textContent='漂浮咒成功！请额外转动一次魔法阵。';
+      answerControls.classList.add('hidden'); spinBtn.disabled=false; playCorrectSound();
+    }else{
+      actionPrompt.textContent='施法成功！请点击“转动魔法阵”。';
+      answerControls.classList.add('hidden'); spinBtn.disabled=false; playCorrectSound();
+    }
+  });
+  incorrectBtn.addEventListener('click',()=>{
+    correctBtn.disabled=true; incorrectBtn.disabled=true;
+    isExtraSpinQuestion=false;
+    answerControls.classList.add('hidden');
+    actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】咒语失败，本轮机会轮空。`;
+    playWrongSound(); setTimeout(startNextTurn,1200);
+  });
+  spinBtn.addEventListener('click',()=>{
+    if(isSpinning) return;
+    playSpinSound();
+    isSpinning=true; spinBtn.disabled=true;
+    const extra=Math.floor(Math.random()*6)+5;
+    const stop=Math.floor(Math.random()*360);
+    currentWheelRotation += extra*360 + stop;
+    wheel.style.transform=`rotate(${currentWheelRotation}deg)`;
+    const finalAngle=currentWheelRotation%360;
+    const winningAngle=(360-finalAngle)%360;
+    const result=getWheelResultByAngle(winningAngle);
+    setTimeout(()=>handleSpinResult(result),4100);
+  });
+  finalSuccessBtn.addEventListener('click',()=>{
+    const winner=teams[pendingExamTeamIndex];
+    closeAllModals();
+    victoryMessage.textContent=`恭喜 ${winner.name} 通过终极魔法考试，成为最强小巫师！`;
+    showModal(victoryModal); playVictorySound();
+  });
+  finalFailBtn.addEventListener('click',()=>{
+    const t=teams[pendingExamTeamIndex];
+    if(t.gems>0)t.gems-=1; else if(t.books>0)t.books-=1;
+    closeAllModals();
+    playExamFailSound();
+    actionPrompt.textContent=`【${t.name}】终极魔法考试失败，失去 1 个资源，继续修炼！`;
+    updateUI(); setTimeout(startNextTurn,1200);
+  });
+  finalCancelBtn.addEventListener('click',closeAllModals);
+  backToSetupBtn.addEventListener('click',()=>location.reload());
+  window.addEventListener('resize',positionWheelSymbols);
+  updateTeamNameInputs();
+};
+</script>
 </body>
 </html>
