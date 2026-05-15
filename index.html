@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>侦探破案 PK 2.0：真凶是谁？</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #E9EEF5;
+            background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,.55), transparent 25%), linear-gradient(135deg, #dfe7f3 0%, #eef2f7 45%, #d8dde8 100%);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            background-color: #F8FAFC;
+            border: 4px solid #1F2937;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease;
+        }
+        #game-screen {
+            min-height: 100vh;
+        }
+        /* The wheel styling */
+        #wheel {
+            border-radius: 50%;
+            border: 10px solid #1F2937;
+            background: conic-gradient(
+                #93C5FD 0deg 60deg,    /* clue */
+                #C4B5FD 60deg 120deg,  /* badge */
+                #FDE68A 120deg 180deg, /* evidence */
+                #FCA5A5 180deg 240deg, /* thief */
+                #93C5FD 240deg 300deg, /* clue */
+                #A7F3D0 300deg 360deg  /* mystery */
+            );
+            box-shadow: 0 0 20px rgba(0,0,0,0.5) inset, 0 0 15px rgba(0,0,0,0.3);
+            position: relative;
+            transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
+            width: 100%;
+            height: 100%;
+        }
+        
+        .wheel-section-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        .wheel-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Spin button styling */
+        #spin-btn {
+            border: 5px solid #475569;
+            box-shadow: 0 6px #334155;
+            position: relative;
+        }
+        #spin-btn:active:not(:disabled) {
+            box-shadow: 0 2px #334155;
+            transform: translateY(4px);
+        }
+        #spin-btn:disabled {
+            box-shadow: 0 6px #334155;
+            transform: translateY(0);
+            background-color: #9ca3af !important;
+            cursor: not-allowed;
+        }
+        
+        #spin-btn::before {
+            content: '';
+            position: absolute;
+            top: -40px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 40px solid #DC143C;
+            z-index: 30;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+        }
+
+        /* Table Styling */
+        .teams-table {
+            background-color: rgba(248, 250, 252, 0.92);
+            border: 3px solid #334155;
+            border-collapse: collapse;
+            width: 100%;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+        }
+        .teams-table th, .teams-table td {
+            border: 2px solid #334155;
+            padding: 8px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        .teams-table th {
+            background-color: rgba(71, 85, 105, 0.18);
+            font-weight: bold;
+        }
+        .teams-table .asset-name {
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        .teams-table .active-col {
+            background-color: rgba(14, 165, 233, 0.18);
+            box-shadow: inset 0 0 10px rgba(14, 165, 233, 0.45);
+        }
+        
+        .btn {
+            transition: all 0.2s ease;
+            box-shadow: 0 4px #999;
+        }
+        .btn:active:not(:disabled) {
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: 0 4px #999;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="w-screen flex items-center justify-center p-4">
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="w-full max-w-lg mx-auto text-center">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-[#1F2937] mb-6">🕵️ 侦探破案 PK 🔎</h1>
+        <div class="modal-content p-6 sm:p-8 rounded-2xl">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-700 mb-4">游戏设置</h2>
+            <div class="mb-6">
+                <label for="team-count" class="block text-lg sm:text-xl mb-2 text-gray-600">选择数量 (可修改下方默认名称):</label>
+                <select id="team-count" class="w-full p-3 text-lg border-2 border-gray-400 rounded-lg bg-white">
+                    <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+                </select>
+            </div>
+            <div id="team-names-container" class="space-y-3 mb-8"></div>
+            <button id="start-game-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 rounded-xl text-xl sm:text-2xl btn">开始调查！</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden w-full max-w-7xl mx-auto flex-col lg:flex-row items-center justify-center gap-8">
+        <!-- Left Column -->
+        <div class="w-full lg:w-3/5 flex items-center justify-center">
+            <div id="wheel-container" class="relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] flex items-center justify-center mx-auto">
+                <div id="wheel"></div>
+                <div id="wheel-center" class="absolute w-full h-full flex items-center justify-center z-10">
+                    <button id="spin-btn" class="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-full text-xl sm:text-2xl font-bold bg-blue-500 hover:bg-blue-600 text-white z-20" disabled>
+                        寻找线索
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="w-full lg:w-2/5 flex flex-col gap-6 items-center justify-start">
+            <div id="status-bar" class="w-full text-center p-4 rounded-xl modal-content">
+                <p id="action-prompt" class="text-xl sm:text-2xl text-gray-700 min-h-[64px] flex items-center justify-center"></p>
+            </div>
+            <div id="answer-controls" class="hidden justify-center gap-4 sm:gap-8 w-full">
+                <button id="correct-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl btn">✅ 回答正确</button>
+                <button id="incorrect-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl btn">❌ 回答错误</button>
+            </div>
+            <div id="controls" class="w-full">
+                <button id="start-round-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 sm:py-4 sm:px-12 rounded-lg text-xl sm:text-2xl btn">开始游戏</button>
+            </div>
+            <div id="teams-info-container" class="w-full mt-4"></div>
+            <div id="rules-container" class="w-full mt-2 text-center text-gray-700"></div>
+            <div class="w-full mt-4">
+                <button id="back-to-setup-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-lg btn">🧭 返回设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4">
+        <div id="victory-modal" class="modal-content p-8 sm:p-10 rounded-2xl text-center hidden flex-col items-center w-full max-w-md">
+            <h2 class="text-4xl sm:text-5xl font-bold text-yellow-500 mb-4">🏆 破案成功！🏆</h2>
+            <p id="victory-message" class="text-xl sm:text-2xl text-gray-800 mb-8"></p>
+            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl text-xl btn">再来一局</button>
+        </div>
+        <div id="steal-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden w-full max-w-lg">
+            <h2 class="text-2xl sm:text-3xl font-bold text-red-700 mb-4">🦹 小偷干扰！</h2>
+            <p id="steal-prompt" class="text-lg sm:text-xl text-gray-700 mb-6">选择一项调查资源进行截取！</p>
+            <div id="steal-options" class="space-y-3 mb-6 max-h-60 overflow-y-auto"></div>
+        </div>
+        <div id="choice-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden w-full max-w-lg">
+            <h2 id="choice-title" class="text-2xl sm:text-3xl font-bold text-indigo-700 mb-4">神秘选择</h2>
+            <p id="choice-prompt" class="text-lg sm:text-xl text-gray-700 mb-6"></p>
+            <div id="choice-options" class="space-y-3 mb-6 max-h-72 overflow-y-auto"></div>
+        </div>
+        <div id="case-card-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden flex-col items-center w-full max-w-md">
+            <h2 class="text-3xl sm:text-4xl font-bold text-purple-700 mb-4">❓ 神秘案件卡</h2>
+            <div id="case-card-content" class="text-xl sm:text-2xl text-gray-800 mb-8 leading-relaxed"></div>
+            <button id="case-card-ok-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-xl text-xl btn">继续调查</button>
+        </div>
+        <div id="final-modal" class="modal-content p-6 sm:p-8 rounded-2xl text-center hidden flex-col items-center w-full max-w-lg">
+            <h2 class="text-3xl sm:text-4xl font-bold text-red-700 mb-4">🚨 最终破案题</h2>
+            <p id="final-message" class="text-xl text-gray-800 mb-6 leading-relaxed"></p>
+            <div class="flex gap-4 w-full">
+                <button id="final-success-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl text-lg btn">✅ 指认成功</button>
+                <button id="final-fail-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl text-lg btn">❌ 指认失败</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            // --- DOM Elements ---
+            const setupScreen = document.getElementById('setup-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const teamCountSelect = document.getElementById('team-count');
+            const teamNamesContainer = document.getElementById('team-names-container');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const actionPrompt = document.getElementById('action-prompt');
+            const teamsInfoContainer = document.getElementById('teams-info-container');
+            const wheel = document.getElementById('wheel');
+            const startRoundBtn = document.getElementById('start-round-btn');
+            const spinBtn = document.getElementById('spin-btn');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const victoryModal = document.getElementById('victory-modal');
+            const victoryMessage = document.getElementById('victory-message');
+            const stealModal = document.getElementById('steal-modal');
+            const stealOptions = document.getElementById('steal-options');
+            const answerControls = document.getElementById('answer-controls');
+            const correctBtn = document.getElementById('correct-btn');
+            const incorrectBtn = document.getElementById('incorrect-btn');
+            const rulesContainer = document.getElementById('rules-container');
+            const backToSetupBtn = document.getElementById('back-to-setup-btn');
+            const choiceModal = document.getElementById('choice-modal');
+            const choiceTitle = document.getElementById('choice-title');
+            const choicePrompt = document.getElementById('choice-prompt');
+            const choiceOptions = document.getElementById('choice-options');
+            const caseCardModal = document.getElementById('case-card-modal');
+            const caseCardContent = document.getElementById('case-card-content');
+            const caseCardOkBtn = document.getElementById('case-card-ok-btn');
+            const finalModal = document.getElementById('final-modal');
+            const finalMessage = document.getElementById('final-message');
+            const finalSuccessBtn = document.getElementById('final-success-btn');
+            const finalFailBtn = document.getElementById('final-fail-btn');
+
+            // --- Game State ---
+            let teams = [];
+            let currentPlayerIndex = 0;
+            let isSpinning = false;
+            let isBonusQuestion = false;
+            let isExtraSpinQuestion = false;
+            let currentWheelRotation = 0;
+            let pendingAccuseTeamIndex = null;
+            let pendingSuspect = null;
+            const defaultNames = ["福尔摩斯", "华生", "柯南", "波洛", "小Q", "阿加莎"];
+            const suspects = ["👨 管家", "👩 女演员", "👴 老教授", "🧑 厨师"];
+            const wheelSections = [
+                { result: 'clue', emoji: '🔎' }, { result: 'badge', emoji: '🕵️' }, { result: 'evidence', emoji: '🧾' },
+                { result: 'thief', emoji: '🦹' }, { result: 'shield', emoji: '🛡️' }, { result: 'mystery', emoji: '❓' },
+            ];
+            const caseCards = [
+                { emoji: '🔦', name: '手电筒', text: '发现隐藏脚印，获得 1 条 🔎线索。', action: () => teams[currentPlayerIndex].clues += 1 },
+                { emoji: '🧤', name: '手套', text: '留下干净指纹，获得 1 张 🛡️防偷卡。', action: () => teams[currentPlayerIndex].shields += 1 },
+                { emoji: '🕰️', name: '时间线', text: '重新整理案发时间线。再回答一题，答对后可以多转一次。', action: () => startExtraSpinQuestion() },
+                { emoji: '🧪', name: '鉴定报告', text: '实验室给出鉴定结果，获得 1 份 🧾证据。', action: () => teams[currentPlayerIndex].evidence += 1 },
+                { emoji: '🚪', name: '密室', text: '发现密室机关，可以指定一队暂停一轮。', action: () => chooseTeamToSkip() },
+            ];
+
+            // --- Audio ---
+            const synth = new Tone.Synth().toDestination();
+            const metalSynth = new Tone.MetalSynth({
+                frequency: 150, envelope: { attack: 0.001, decay: 0.4, release: 0.2 },
+                harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5
+            }).toDestination();
+            function playSound(note, duration = '8n') { try { Tone.start(); synth.triggerAttackRelease(note, duration); } catch (e) { console.error("Audio error:", e); } }
+            function playCoinSound() { try { Tone.start(); metalSynth.triggerAttackRelease("C5", "16n", Tone.now()); } catch(e) { console.error("Audio error:", e); } }
+
+            // --- Setup Phase ---
+            function updateTeamNameInputs() {
+                const count = parseInt(teamCountSelect.value);
+                teamNamesContainer.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const input = document.createElement('input');
+                    input.type = 'text'; input.id = `team-name-${i}`; input.placeholder = `侦探队 ${i + 1} 名称`;
+                    input.value = `${defaultNames[i]}侦探队`; input.className = 'w-full p-3 text-lg border-2 border-gray-300 rounded-lg';
+                    teamNamesContainer.appendChild(input);
+                }
+            }
+            teamCountSelect.addEventListener('change', updateTeamNameInputs);
+            startGameBtn.addEventListener('click', () => {
+                const count = parseInt(teamCountSelect.value);
+                teams = [];
+                for (let i = 0; i < count; i++) {
+                    const nameInput = document.getElementById(`team-name-${i}`);
+                    teams.push({ name: nameInput.value.trim() || `侦探队 ${i + 1}`, clues: 0, evidence: 0, badges: 0, shields: 0, skipTurns: 0 });
+                }
+                setupGame();
+            });
+
+            // --- Game Logic ---
+            function setupGame() {
+                setupScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                gameScreen.classList.add('flex');
+                positionWheelEmojis();
+                currentPlayerIndex = -1;
+                updateUI();
+                actionPrompt.textContent = `请点击“开始游戏”按钮，开启第一轮调查！`;
+                rulesContainer.innerHTML = '<p class="text-sm font-semibold">获胜条件: 集齐 🔎线索 x3、🧾证据 x1、🕵️徽章 x1 后，点击 🚨指认真凶，并完成最终破案题。</p><p class="text-xs mt-1">🛡️防偷卡可抵消一次小偷干扰；🧾 x3 可兑换 🕵️ x1。</p>';
+            }
+
+            function positionWheelEmojis() {
+                wheel.innerHTML = '';
+                const wheelRadius = wheel.offsetWidth / 2;
+                const emojiSize = wheelRadius * 0.32;
+                const emojiTranslation = wheelRadius * 0.65; 
+                wheelSections.forEach((section, index) => {
+                    const angle = 60 * index + 30;
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'wheel-section-content';
+                    const transformStyle = `translate(-50%, -50%) rotate(${angle}deg) translateY(-${emojiTranslation}px) rotate(-${angle}deg)`;
+                    contentDiv.innerHTML = `<span class="wheel-emoji" style="font-size: ${emojiSize}px; transform: ${transformStyle};">${section.emoji}</span>`;
+                    wheel.appendChild(contentDiv);
+                });
+            }
+
+            function canAccuse(team) {
+                return team.clues >= 3 && team.evidence >= 1 && team.badges >= 1;
+            }
+
+            function updateUI() {
+                teamsInfoContainer.innerHTML = '';
+                const table = document.createElement('table');
+                table.className = 'teams-table text-lg';
+
+                let headerHtml = '<thead><tr><th class="w-1/4">调查资源</th>';
+                teams.forEach((team, index) => {
+                    const skipText = team.skipTurns > 0 ? ' <span class="text-xs text-red-600">暂停</span>' : '';
+                    headerHtml += `<th class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.name}${skipText}</th>`;
+                });
+                headerHtml += '</tr></thead>';
+                
+                let bodyHtml = '<tbody>';
+                bodyHtml += '<tr><td class="asset-name">🔎 线索</td>';
+                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.clues} / 3</td>`; });
+                bodyHtml += '</tr>';
+                bodyHtml += '<tr><td class="asset-name">🧾 证据</td>';
+                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.evidence} / 1</td>`; });
+                bodyHtml += '</tr>';
+                bodyHtml += '<tr><td class="asset-name">🕵️ 徽章</td>';
+                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.badges} / 1</td>`; });
+                bodyHtml += '</tr>';
+                bodyHtml += '<tr><td class="asset-name">🛡️ 防偷卡</td>';
+                teams.forEach((team, index) => { bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.shields}</td>`; });
+                bodyHtml += '</tr>';
+                bodyHtml += '<tr><td>操作</td>';
+                teams.forEach((team, index) => {
+                    bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">
+                        <button class="buy-badge-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md text-sm btn mb-2" data-index="${index}" ${team.evidence < 3 ? 'disabled' : ''}>用3🧾换徽章</button>
+                        <button class="accuse-btn bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${!canAccuse(team) ? 'disabled' : ''}>🚨 指认真凶</button>
+                    </td>`;
+                });
+                bodyHtml += '</tr></tbody>';
+                table.innerHTML = headerHtml + bodyHtml;
+                teamsInfoContainer.appendChild(table);
+
+                const suspectBox = document.createElement('div');
+                suspectBox.className = 'mt-4 p-3 rounded-xl bg-white/70 border-2 border-gray-700 text-center';
+                suspectBox.innerHTML = `<div class="font-bold text-gray-800 mb-2">嫌疑人区</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">${suspects.map(s => `<div class="p-2 rounded-lg bg-slate-100 border border-slate-300">${s}</div>`).join('')}</div>`;
+                teamsInfoContainer.appendChild(suspectBox);
+
+                document.querySelectorAll('.buy-badge-btn').forEach(btn => btn.addEventListener('click', (e) => buyBadge(parseInt(e.target.dataset.index))));
+                document.querySelectorAll('.accuse-btn').forEach(btn => btn.addEventListener('click', (e) => openSuspectChoice(parseInt(e.target.dataset.index))));
+            }
+            
+            function startNextTurn() {
+                let safety = 0;
+                do {
+                    currentPlayerIndex = (currentPlayerIndex + 1) % teams.length;
+                    safety++;
+                    if (teams[currentPlayerIndex].skipTurns > 0) {
+                        teams[currentPlayerIndex].skipTurns -= 1;
+                        actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】被密室机关困住，暂停一轮！`;
+                        updateUI();
+                    } else {
+                        break;
+                    }
+                } while (safety <= teams.length + 2);
+
+                updateUI();
+                actionPrompt.textContent = `轮到【${teams[currentPlayerIndex].name}】回答问题...`;
+                spinBtn.disabled = true;
+                isSpinning = false;
+                correctBtn.disabled = false;
+                incorrectBtn.disabled = false;
+                answerControls.classList.remove('hidden');
+                answerControls.classList.add('flex');
+            }
+
+            startRoundBtn.addEventListener('click', () => {
+                startRoundBtn.parentElement.classList.add('hidden');
+                startNextTurn();
+            });
+            
+            correctBtn.addEventListener('click', () => {
+                correctBtn.disabled = true;
+                incorrectBtn.disabled = true;
+                
+                if (isBonusQuestion) {
+                    isBonusQuestion = false;
+                    teams[currentPlayerIndex].evidence += 2;
+                    playCoinSound();
+                    actionPrompt.textContent = '奖励题回答正确！获得2份证据！';
+                    answerControls.classList.add('hidden');
+                    setTimeout(() => checkReadyAndSwitch(true), 1200);
+                } else if (isExtraSpinQuestion) {
+                    isExtraSpinQuestion = false;
+                    playSound('C5');
+                    actionPrompt.textContent = '时间线整理成功！请再次转动转盘。';
+                    answerControls.classList.add('hidden');
+                    spinBtn.disabled = false;
+                } else {
+                    playSound('C5');
+                    actionPrompt.textContent = "回答正确！请点击“寻找线索”转动转盘！";
+                    spinBtn.disabled = false;
+                    answerControls.classList.add('hidden');
+                }
+            });
+
+            incorrectBtn.addEventListener('click', () => {
+                correctBtn.disabled = true;
+                incorrectBtn.disabled = true;
+                answerControls.classList.add('hidden');
+                playSound('C3', '4n');
+                isBonusQuestion = false;
+                isExtraSpinQuestion = false;
+                actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】回答错误，机会轮空！`;
+                setTimeout(startNextTurn, 1200);
+            });
+
+            spinBtn.addEventListener('click', () => {
+                if (isSpinning) return;
+                isSpinning = true;
+                spinBtn.disabled = true;
+                const randomExtraSpins = Math.floor(Math.random() * 6) + 5; 
+                const randomStopAngle = Math.floor(Math.random() * 360);
+                const totalNewRotation = (randomExtraSpins * 360) + randomStopAngle;
+                currentWheelRotation += totalNewRotation;
+                wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
+                const finalAngle = currentWheelRotation % 360;
+                const winningAngle = (360 - finalAngle) % 360;
+                const sectionIndex = Math.floor(winningAngle / 60);
+                const result = wheelSections[sectionIndex];
+                setTimeout(() => handleSpinResult(result), 4100); 
+            });
+
+            function handleSpinResult(result) {
+                isSpinning = false; 
+                const team = teams[currentPlayerIndex];
+                actionPrompt.innerHTML = `【${team.name}】转到了: <span class="text-3xl sm:text-4xl">${result.emoji}</span>`;
+                switch (result.result) {
+                    case 'evidence': team.evidence += 1; playCoinSound(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+                    case 'clue': team.clues += 1; playSound('E4'); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+                    case 'thief': handleThief(); return;
+                    case 'badge': team.badges += 1; playSound('A5'); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+                    case 'shield': team.shields += 1; playSound('G5'); actionPrompt.innerHTML += ` 获得 1 张防偷卡！`; setTimeout(() => checkReadyAndSwitch(true), 1200); break;
+                    case 'mystery': drawCaseCard(); return;
+                }
+                updateUI();
+            }
+            
+            function handleThief() {
+                actionPrompt.innerHTML += ` 小偷干扰！`;
+                stealOptions.innerHTML = '';
+                let hasTargets = false;
+                teams.forEach((targetTeam, targetIndex) => {
+                    if (targetIndex === currentPlayerIndex) return;
+                    [['evidence','🧾证据','bg-yellow-600 hover:bg-yellow-700'], ['clues','🔎线索','bg-green-600 hover:bg-green-700'], ['badges','🕵️徽章','bg-blue-600 hover:bg-blue-700']].forEach(([assetType, label, cls]) => {
+                        if (targetTeam[assetType] > 0) {
+                            hasTargets = true;
+                            const btn = document.createElement('button');
+                            btn.className = `block w-full ${cls} text-white font-bold py-2 px-4 rounded btn mb-2`;
+                            const shieldText = targetTeam.shields > 0 ? '（对方有🛡️，可能抵消）' : '';
+                            btn.textContent = `从【${targetTeam.name}】截取 1 个 ${label}${shieldText}`;
+                            btn.onclick = () => performSteal(targetIndex, assetType);
+                            stealOptions.appendChild(btn);
+                        }
+                    });
+                });
+
+                if (!hasTargets) {
+                    actionPrompt.textContent = "🦹 可惜...没有可截取的目标！";
+                    setTimeout(() => checkReadyAndSwitch(true), 1200);
+                    return;
+                }
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'block w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded btn mt-4';
+                cancelBtn.textContent = '放弃截取';
+                cancelBtn.onclick = () => {
+                    closeAllModals();
+                    checkReadyAndSwitch(true);
+                };
+                stealOptions.appendChild(cancelBtn);
+
+                modalOverlay.style.display = 'flex';
+                stealModal.classList.remove('hidden');
+            }
+            
+            function performSteal(targetIndex, assetType) {
+                const target = teams[targetIndex];
+                const current = teams[currentPlayerIndex];
+                closeAllModals();
+                if (target.shields > 0) {
+                    target.shields -= 1;
+                    actionPrompt.textContent = `【${target.name}】使用 🛡️防偷卡，成功抵消小偷干扰！`;
+                    playSound('F4');
+                } else {
+                    target[assetType] -= 1;
+                    current[assetType] += 1;
+                    const labels = { clues: '🔎线索', evidence: '🧾证据', badges: '🕵️徽章' };
+                    actionPrompt.textContent = `【${current.name}】从【${target.name}】截取了 1 个 ${labels[assetType]}！`;
+                    playSound('C3');
+                    if (assetType === 'evidence') playCoinSound();
+                }
+                setTimeout(() => checkReadyAndSwitch(true), 1200);
+            }
+
+            function buyBadge(teamIndex) {
+                const team = teams[teamIndex];
+                if (team.evidence >= 3) {
+                    team.evidence -= 3; team.badges += 1; playSound('G5');
+                    actionPrompt.textContent = `【${team.name}】用3份证据兑换了1枚侦探徽章！`;
+                    checkReadyAndSwitch(false);
+                }
+            }
+
+            function drawCaseCard() {
+                const card = caseCards[Math.floor(Math.random() * caseCards.length)];
+                playSound('B4');
+                caseCardContent.innerHTML = `<div class="text-6xl mb-3">${card.emoji}</div><div class="font-bold mb-2">${card.name}</div><div class="text-lg">${card.text}</div>`;
+                modalOverlay.style.display = 'flex';
+                caseCardModal.classList.remove('hidden');
+                caseCardModal.classList.add('flex');
+                caseCardOkBtn.onclick = () => {
+                    closeAllModals();
+                    card.action();
+                    updateUI();
+                    if (!isExtraSpinQuestion && card.name !== '密室') setTimeout(() => checkReadyAndSwitch(true), 800);
+                };
+            }
+
+            function startExtraSpinQuestion() {
+                isExtraSpinQuestion = true;
+                actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】请回答时间线奖励题，答对可多转一次！`;
+                answerControls.classList.remove('hidden');
+                answerControls.classList.add('flex');
+                correctBtn.disabled = false;
+                incorrectBtn.disabled = false;
+            }
+
+            function chooseTeamToSkip() {
+                choiceTitle.textContent = '🚪 密室机关';
+                choicePrompt.textContent = '指定一队暂停下一轮。';
+                choiceOptions.innerHTML = '';
+                let hasOtherTeams = false;
+                teams.forEach((team, index) => {
+                    if (index === currentPlayerIndex) return;
+                    hasOtherTeams = true;
+                    const btn = document.createElement('button');
+                    btn.className = 'block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded btn mb-2';
+                    btn.textContent = `让【${team.name}】暂停一轮`;
+                    btn.onclick = () => {
+                        teams[index].skipTurns += 1;
+                        closeAllModals();
+                        actionPrompt.textContent = `【${team.name}】被密室机关困住，下一轮暂停！`;
+                        updateUI();
+                        setTimeout(() => checkReadyAndSwitch(true), 1000);
+                    };
+                    choiceOptions.appendChild(btn);
+                });
+                if (!hasOtherTeams) {
+                    actionPrompt.textContent = '没有可指定的队伍。';
+                    setTimeout(() => checkReadyAndSwitch(true), 1000);
+                    return;
+                }
+                modalOverlay.style.display = 'flex';
+                choiceModal.classList.remove('hidden');
+            }
+
+            function openSuspectChoice(teamIndex) {
+                pendingAccuseTeamIndex = teamIndex;
+                choiceTitle.textContent = '🚨 指认真凶';
+                choicePrompt.textContent = `【${teams[teamIndex].name}】请选择一名嫌疑人，然后回答老师的最终破案题。`;
+                choiceOptions.innerHTML = '';
+                suspects.forEach(suspect => {
+                    const btn = document.createElement('button');
+                    btn.className = 'block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded btn mb-2';
+                    btn.textContent = suspect;
+                    btn.onclick = () => openFinalQuestion(teamIndex, suspect);
+                    choiceOptions.appendChild(btn);
+                });
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'block w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded btn mt-4';
+                cancelBtn.textContent = '继续调查，暂不指认';
+                cancelBtn.onclick = closeAllModals;
+                choiceOptions.appendChild(cancelBtn);
+                modalOverlay.style.display = 'flex';
+                choiceModal.classList.remove('hidden');
+            }
+
+            function openFinalQuestion(teamIndex, suspect) {
+                pendingAccuseTeamIndex = teamIndex;
+                pendingSuspect = suspect;
+                closeAllModals(false);
+                finalMessage.innerHTML = `【${teams[teamIndex].name}】指认 <span class="font-bold text-red-700">${suspect}</span> 是真凶！<br>请老师提问最终破案题，或让学生用英语说明：<br><span class="font-semibold">I think the thief is ____ because ____.</span>`;
+                modalOverlay.style.display = 'flex';
+                finalModal.classList.remove('hidden');
+                finalModal.classList.add('flex');
+            }
+
+            finalSuccessBtn.addEventListener('click', () => {
+                const winner = teams[pendingAccuseTeamIndex];
+                closeAllModals(false);
+                victoryMessage.textContent = `恭喜 ${winner.name} 成功指认 ${pendingSuspect}，找到真相，破案成功！`;
+                modalOverlay.style.display = 'flex';
+                victoryModal.classList.remove('hidden');
+                victoryModal.classList.add('flex');
+                playSound('C6', '2n');
+            });
+
+            finalFailBtn.addEventListener('click', () => {
+                const team = teams[pendingAccuseTeamIndex];
+                if (team.evidence > 0) team.evidence -= 1;
+                closeAllModals();
+                actionPrompt.textContent = `【${team.name}】指认失败，失去1份证据，继续调查！`;
+                updateUI();
+                setTimeout(startNextTurn, 1200);
+            });
+
+            function checkReadyAndSwitch(shouldSwitch) {
+                updateUI();
+                const readyTeam = teams[currentPlayerIndex];
+                if (readyTeam && canAccuse(readyTeam)) {
+                    actionPrompt.textContent = `【${readyTeam.name}】已集齐破案条件！可以点击“🚨 指认真凶”，也可以继续调查。`;
+                }
+                if (shouldSwitch) setTimeout(startNextTurn, 1500);
+            }
+
+            function closeAllModals(hideOverlay = true) {
+                [victoryModal, stealModal, choiceModal, caseCardModal, finalModal].forEach(m => {
+                    m.classList.add('hidden');
+                    m.classList.remove('flex');
+                });
+                if (hideOverlay) modalOverlay.style.display = 'none';
+            }
+            
+            // --- Initial call & Event Listeners ---
+            updateTeamNameInputs();
+            window.addEventListener('resize', positionWheelEmojis);
+            backToSetupBtn.addEventListener('click', () => location.reload());
+        };
+    </script>
+</body>
+</html>
