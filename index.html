@@ -78,6 +78,18 @@
         </select>
       </div>
       <div id="team-names-container" class="space-y-3 mb-6"></div>
+      <div class="mb-6 text-left">
+        <label class="block text-lg font-black mb-2 text-slate-700">本局嫌疑人名单</label>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <button id="select-all-suspects-btn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2 px-3 rounded-xl text-sm btn">全选</button>
+          <button id="clear-suspects-btn" type="button" class="bg-slate-500 hover:bg-slate-600 text-white font-black py-2 px-3 rounded-xl text-sm btn">清空</button>
+          <button id="random-6-suspects-btn" type="button" class="bg-purple-600 hover:bg-purple-700 text-white font-black py-2 px-3 rounded-xl text-sm btn">随机6人</button>
+          <button id="random-8-suspects-btn" type="button" class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-black py-2 px-3 rounded-xl text-sm btn">随机8人</button>
+        </div>
+        <div id="suspect-count-label" class="text-sm font-black text-emerald-700 mb-2"></div>
+        <div id="suspect-picker-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 rounded-2xl bg-slate-50 border-2 border-slate-200"></div>
+        <p class="text-xs text-slate-500 mt-2 leading-relaxed">建议每局选择 6-10 人；系统会给每个嫌疑人随机分配地点、衣服和物品，真正的小偷也会每局随机变化。</p>
+      </div>
       <div class="rounded-2xl bg-slate-100 border border-slate-300 p-4 text-left text-sm text-slate-700 mb-6">
         <div class="font-black mb-2">获胜条件</div>
         <ul class="list-disc pl-5 space-y-1">
@@ -178,6 +190,12 @@ window.onload = function() {
   const gameScreen = document.getElementById('game-screen');
   const teamCountSelect = document.getElementById('team-count');
   const teamNamesContainer = document.getElementById('team-names-container');
+  const suspectPickerContainer = document.getElementById('suspect-picker-container');
+  const suspectCountLabel = document.getElementById('suspect-count-label');
+  const selectAllSuspectsBtn = document.getElementById('select-all-suspects-btn');
+  const clearSuspectsBtn = document.getElementById('clear-suspects-btn');
+  const random6SuspectsBtn = document.getElementById('random-6-suspects-btn');
+  const random8SuspectsBtn = document.getElementById('random-8-suspects-btn');
   const startGameBtn = document.getElementById('start-game-btn');
   const actionPrompt = document.getElementById('action-prompt');
   const teamsInfoContainer = document.getElementById('teams-info-container');
@@ -241,12 +259,25 @@ window.onload = function() {
   let timerLeft = 8;
   const defaultNames = ['福尔摩斯队', '华生队', '柯南队', '波洛队', '星星队', '飞鹰队'];
 
-  const suspects = [
-    { name: 'the butler', display: 'The Butler', displayZh:'管家', place: 'kitchen', wear: 'a black hat', item: 'a silver key' },
-    { name: 'the actress', display: 'The Actress', displayZh:'女演员', place: 'garden', wear: 'a red scarf', item: 'a perfume bottle' },
-    { name: 'the professor', display: 'The Professor', displayZh:'老教授', place: 'study', wear: 'glasses', item: 'a notebook' },
-    { name: 'the chef', display: 'The Chef', displayZh:'厨师', place: 'dining room', wear: 'a white apron', item: 'a wooden spoon' }
+  const participantNames = ['Rocket', 'Cassie', 'Rachel', 'Bobo', 'Hannah', 'Cici', 'Joe', 'Leon', 'Sylvia', 'Gorman', 'Ryan', 'Aaron', 'Annie', 'Yuki', 'Linna', 'Helen', 'Ken', 'Charlie', 'Via', 'Eva'];
+  const placePool = [
+    'library', 'cafeteria', 'art room', 'playground', 'music room', 'computer room', 'nurse's office', 'science lab',
+    'classroom', 'gym', 'toy shop', 'supermarket', 'park', 'zoo', 'garden', 'kitchen', 'dining room', 'study',
+    'cinema', 'bookshop', 'museum', 'station', 'bakery', 'swimming pool'
   ];
+  const clothesPool = [
+    'a red hoodie', 'a blue cap', 'a yellow jacket', 'a green scarf', 'a purple coat', 'white shoes', 'black glasses',
+    'a pink dress', 'a striped T-shirt', 'a football shirt', 'a brown sweater', 'a rainbow hat', 'a grey school uniform',
+    'orange socks', 'a white apron', 'a black hat', 'a red scarf', 'a blue backpack', 'a pair of sunglasses', 'a green coat',
+    'a star T-shirt', 'a flower hat', 'a silver watch', 'a yellow raincoat'
+  ];
+  const itemPool = [
+    'a silver key', 'a comic book', 'a toy car', 'a pink pencil', 'a yellow ruler', 'a football', 'a water bottle',
+    'a lunchbox', 'a camera', 'a notebook', 'a magic wand', 'a teddy bear', 'a green apple', 'a paintbrush',
+    'a storybook', 'a small bell', 'a red envelope', 'a map', 'a glue stick', 'a flashlight', 'a purple sticker',
+    'a golden coin', 'a toy robot', 'a cookie box'
+  ];
+  let suspects = [];
 
   const wheelSections = [
     { result: 'clue', symbol: '●', label: 'Clue', weight: 30, color: '#93C5FD' },
@@ -320,30 +351,90 @@ window.onload = function() {
     }
   }
 
+  function renderSuspectPicker() {
+    suspectPickerContainer.innerHTML = '';
+    participantNames.forEach((name, index) => {
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 font-black text-slate-700 cursor-pointer hover:bg-blue-50';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.className = 'suspect-check w-4 h-4 accent-blue-600';
+      input.value = name;
+      input.checked = index < 8;
+      input.addEventListener('change', updateSuspectCount);
+      const span = document.createElement('span');
+      span.textContent = name;
+      label.appendChild(input);
+      label.appendChild(span);
+      suspectPickerContainer.appendChild(label);
+    });
+    updateSuspectCount();
+  }
+
+  function updateSuspectCount() {
+    const count = getSelectedSuspectNames().length;
+    suspectCountLabel.textContent = `已选择 ${count} 名嫌疑人（至少 4 名）`;
+    suspectCountLabel.className = count >= 4 ? 'text-sm font-black text-emerald-700 mb-2' : 'text-sm font-black text-red-600 mb-2';
+  }
+
+  function getSelectedSuspectNames() {
+    return Array.from(document.querySelectorAll('.suspect-check:checked')).map(input => input.value);
+  }
+
+  function setAllSuspects(checked) {
+    document.querySelectorAll('.suspect-check').forEach(input => input.checked = checked);
+    updateSuspectCount();
+  }
+
+  function randomSelectSuspects(count) {
+    const picks = new Set(shuffle(participantNames).slice(0, count));
+    document.querySelectorAll('.suspect-check').forEach(input => input.checked = picks.has(input.value));
+    updateSuspectCount();
+  }
+
+  function makeSuspectsForRound(names) {
+    const places = shuffle(placePool);
+    const clothes = shuffle(clothesPool);
+    const items = shuffle(itemPool);
+    return names.map((name, index) => ({
+      name: `suspect-${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      display: name,
+      displayZh: name,
+      place: places[index % places.length],
+      wear: clothes[index % clothes.length],
+      item: items[index % items.length]
+    }));
+  }
+
   function buildCaseDecks(resetThief=true) {
-    if (resetThief || !trueThief) trueThief = suspects[Math.floor(Math.random() * suspects.length)];
-    const others = suspects.filter(s => s.name !== trueThief.name);
+    if (!suspects.length) return;
+    if (resetThief || !trueThief || !suspects.some(s => s.name === trueThief.name)) trueThief = suspects[Math.floor(Math.random() * suspects.length)];
+    const others = shuffle(suspects.filter(s => s.name !== trueThief.name));
+    const pickOther = (index) => others[index % others.length] || trueThief;
     const clue卡片 = [
       { title:'Place Clue', en:`The thief was near the ${trueThief.place}.`, type:'true' },
       { title:'Clothes Clue', en:`The thief wore ${trueThief.wear}.`, type:'true' },
       { title:'Thing Clue', en:`The thief had ${trueThief.item}.`, type:'true' },
-      { title:'Not There', en:`The thief was not near the ${others[0].place}.`, type:'true' },
-      { title:'Not This', en:`The thief did not wear ${others[1].wear}.`, type:'true' },
-      { title:'Not This', en:`The thief did not have ${others[2].item}.`, type:'true' },
-      { title:'After Dinner', en:`Someone saw the thief near the ${trueThief.place} after dinner.`, type:'true' },
-      { title:'Look Clue', en:`The thief looked like someone with ${trueThief.wear}.`, type:'true' },
+      { title:'Name Clue', en:`The thief's name starts with "${trueThief.display.charAt(0)}".`, type:'true' },
+      { title:'Name Clue', en:`The thief's name has ${trueThief.display.length} letters.`, type:'true' },
+      { title:'Not There', en:`The thief was not near the ${pickOther(0).place}.`, type:'true' },
+      { title:'Not This', en:`The thief did not wear ${pickOther(1).wear}.`, type:'true' },
+      { title:'Not This', en:`The thief did not have ${pickOther(2).item}.`, type:'true' },
+      { title:'Not This Person', en:`The thief was not ${pickOther(3).display}.`, type:'true' },
+      { title:'After Class', en:`Someone saw the thief near the ${trueThief.place} after class.`, type:'true' },
+      { title:'Look Clue', en:`The thief looked like someone wearing ${trueThief.wear}.`, type:'true' },
       { title:'Thing Clue', en:`A key thing was ${trueThief.item}.`, type:'true' }
     ];
-    const falseClues = shuffle(others).slice(0,2).map(s => ({ title:'Maybe Clue', en:`Maybe the thief was near the ${s.place}. Are they sure?`, type:'maybe' }));
     const evidence卡片 = [];
     suspects.forEach(s => {
       evidence卡片.push(
-        { title:'Person Evidence', en:`${s.display} was near the ${s.place}.` },
-        { title:'Person Evidence', en:`${s.display} wore ${s.wear}.` },
-        { title:'Person Evidence', en:`${s.display} had ${s.item}.` }
+        { title:'Full Evidence', en:`${s.display} was near the ${s.place}, wore ${s.wear}, and had ${s.item}.` },
+        { title:'Place Evidence', en:`${s.display} was near the ${s.place}.` },
+        { title:'Clothes Evidence', en:`${s.display} wore ${s.wear}.` },
+        { title:'Thing Evidence', en:`${s.display} had ${s.item}.` }
       );
     });
-    clueDeck = shuffle([...clue卡片, ...falseClues]);
+    clueDeck = shuffle(clue卡片);
     evidenceDeck = shuffle(evidence卡片);
   }
 
@@ -359,13 +450,20 @@ window.onload = function() {
   }
 
   function startSetupGame() {
+    const selectedNames = getSelectedSuspectNames();
+    if (selectedNames.length < 4) {
+      alert('请至少选择 4 名嫌疑人，这样孩子才有推理空间哦！');
+      return;
+    }
     const count = parseInt(teamCountSelect.value);
     teams = [];
     for (let i = 0; i < count; i++) {
       const nameInput = document.getElementById(`team-name-${i}`);
       teams.push(createTeam(nameInput.value.trim() || `侦探队 ${i + 1}`));
     }
-    timerMax = count <= 3 ? 8 : 10;
+    suspects = makeSuspectsForRound(selectedNames);
+    trueThief = null;
+    timerMax = selectedNames.length >= 10 ? 12 : (count <= 3 ? 8 : 10);
     timerLeft = timerMax;
     buildCaseDecks();
     setupGame();
@@ -430,7 +528,7 @@ window.onload = function() {
 
     const suspectBox = document.createElement('div');
     suspectBox.className = 'mt-4 p-3 rounded-2xl bg-white/85 border-2 border-slate-700 text-center';
-    suspectBox.innerHTML = `<div class="font-black text-slate-800 mb-2">嫌疑人 Suspects</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">${suspects.map(s => `<div class="p-3 rounded-xl bg-slate-100 border border-slate-300"><div class="font-black">${s.displayZh}</div><div class="text-xs text-slate-500">${s.display}</div></div>`).join('')}</div><div class="mt-2 text-xs text-slate-500">不显示地点和物品，请根据 Clue / Evidence 自己推理。</div>`;
+    suspectBox.innerHTML = `<div class="font-black text-slate-800 mb-2">本局嫌疑人身份卡 Suspect Cards</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs max-h-72 overflow-y-auto pr-1">${suspects.map(s => `<div class="p-3 rounded-xl bg-slate-100 border border-slate-300 text-left"><div class="font-black text-base text-slate-800 mb-1">${s.display}</div><div>📍 ${s.place}</div><div>👕 ${s.wear}</div><div>🎒 ${s.item}</div></div>`).join('')}</div><div class="mt-2 text-xs text-slate-500">每局地点、衣服、物品都会重新随机；真正的小偷不会公开，需要根据 Clue / Evidence 推理。</div>`;
     teamsInfoContainer.appendChild(suspectBox);
 
     document.querySelectorAll('.buy-badge-btn').forEach(btn => btn.addEventListener('click', e => buyBadge(parseInt(e.currentTarget.dataset.index))));
@@ -695,7 +793,7 @@ window.onload = function() {
         </label>
         <label class="block font-black text-slate-700">Step 3: Who was the thief?
           <select id="final-person" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
-            ${suspects.map(s => `<option value="${s.name}">${s.displayZh} / ${s.display}</option>`).join('')}
+            ${suspects.map(s => `<option value="${s.name}">${s.display}</option>`).join('')}
           </select>
         </label>
       </div>`;
@@ -711,7 +809,7 @@ window.onload = function() {
     const success = place === trueThief.place && item === trueThief.item && person === trueThief.name;
     closeAllModals(false);
     if (success) {
-      victoryMessage.innerHTML = `太棒了！【${team.name}】抓到了真正的小偷！<br><span class="text-base text-slate-600">The treasure is safe now.</span>`;
+      victoryMessage.innerHTML = `太棒了！【${team.name}】抓到了真正的小偷：${trueThief.display}！<br><span class="text-base text-slate-600">The treasure is safe now.</span>`;
       showModal(victoryModal);
       playSound('C6','2n');
     } else {
@@ -817,8 +915,13 @@ window.onload = function() {
   });
   window.addEventListener('resize', positionWheelSymbols);
   backToSetupBtn.addEventListener('click', () => location.reload());
+  selectAllSuspectsBtn.addEventListener('click', () => setAllSuspects(true));
+  clearSuspectsBtn.addEventListener('click', () => setAllSuspects(false));
+  random6SuspectsBtn.addEventListener('click', () => randomSelectSuspects(6));
+  random8SuspectsBtn.addEventListener('click', () => randomSelectSuspects(8));
 
   updateTeamNameInputs();
+  renderSuspectPicker();
 };
 </script>
 </body>
