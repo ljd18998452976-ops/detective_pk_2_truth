@@ -1,928 +1,378 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>神秘小偷追踪 Mystery Thief Chase</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-  <style>
-    body {
-      font-family: 'Noto Sans SC', sans-serif;
-      background-color: #111827;
-      background-image:
-        radial-gradient(circle at 15% 10%, rgba(59,130,246,.35), transparent 26%),
-        radial-gradient(circle at 85% 15%, rgba(168,85,247,.25), transparent 28%),
-        radial-gradient(circle at 50% 85%, rgba(245,158,11,.20), transparent 32%),
-        linear-gradient(135deg, #0f172a 0%, #1e293b 46%, #111827 100%);
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-    .modal-content {
-      background: rgba(248,250,252,.96);
-      border: 4px solid #111827;
-      box-shadow: 0 16px 35px rgba(0,0,0,.45);
-      transition: transform .3s ease;
-    }
-    #game-screen { min-height: 100vh; }
-    #wheel {
-      border-radius: 50%;
-      border: 10px solid #111827;
-      box-shadow: 0 0 24px rgba(255,255,255,.18) inset, 0 0 22px rgba(0,0,0,.45);
-      position: relative;
-      transition: transform 4s cubic-bezier(.25,1,.5,1);
-      width: 100%;
-      height: 100%;
-    }
-    .wheel-section-content { position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; }
-    .wheel-symbol {
-      position:absolute; top:50%; left:50%; transform-origin:center;
-      color:#111827; font-weight:900; text-shadow:1px 1px 3px rgba(255,255,255,.6);
-    }
-    #spin-btn { border:5px solid #475569; box-shadow:0 6px #334155; position:relative; }
-    #spin-btn:active:not(:disabled){ box-shadow:0 2px #334155; transform:translateY(4px); }
-    #spin-btn:disabled { box-shadow:0 6px #334155; transform:translateY(0); background-color:#9ca3af !important; cursor:not-allowed; }
-    #spin-btn::before{
-      content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
-      width:0; height:0; border-left:25px solid transparent; border-right:25px solid transparent;
-      border-bottom:40px solid #ef4444; z-index:30; filter:drop-shadow(2px 2px 2px rgba(0,0,0,.35));
-    }
-    .teams-table { background:rgba(248,250,252,.94); border:3px solid #334155; border-collapse:collapse; width:100%; box-shadow:5px 5px 12px rgba(0,0,0,.22); }
-    .teams-table th,.teams-table td { border:2px solid #334155; padding:8px; text-align:center; transition:background-color .3s; vertical-align:middle; }
-    .teams-table th { background:rgba(51,65,85,.12); font-weight:900; }
-    .teams-table .asset-name { font-weight:900; font-size:1.02rem; white-space:nowrap; }
-    .teams-table .active-col { background:rgba(59,130,246,.14); box-shadow:inset 0 0 10px rgba(59,130,246,.35); }
-    .btn { transition:all .2s ease; box-shadow:0 4px #777; }
-    .btn:active:not(:disabled){ box-shadow:0 2px #555; transform:translateY(2px); }
-    .btn:disabled { opacity:.48; cursor:not-allowed; box-shadow:0 4px #999; transform:translateY(0); }
-    .asset-symbol { display:inline-block; min-width:1.2em; text-align:center; font-weight:900; }
-    .note-card { background:#fff; border:2px solid #cbd5e1; border-left:6px solid #3b82f6; border-radius:14px; padding:10px 12px; text-align:left; }
-    .evidence-card { border-left-color:#f59e0b; }
-    .tag { display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:900; }
-    .timer-dot { width:14px; height:14px; border-radius:999px; display:inline-block; margin:2px; background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,.65); }
-    .timer-dot.off { background:#334155; box-shadow:none; opacity:.45; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>神秘小偷追踪 Mystery Thief Chase</title>
+<style>
+  :root{
+    --bg1:#0f172a; --bg2:#312e81; --ink:#172033; --muted:#64748b; --line:#cbd5e1;
+    --card:#f8fafc; --white:#fff; --blue:#2563eb; --purple:#9333ea; --green:#059669; --red:#dc2626;
+    --amber:#f59e0b; --shadow:0 12px 30px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box}
+  html{scrollbar-gutter:stable}body{margin:0;min-height:100vh;font-family:Arial,'Microsoft YaHei',sans-serif;color:var(--ink);background:radial-gradient(circle at 15% 10%,rgba(59,130,246,.35),transparent 26%),radial-gradient(circle at 85% 15%,rgba(168,85,247,.25),transparent 28%),linear-gradient(135deg,var(--bg1),var(--bg2));overflow-x:hidden}
+  button,select,input{font-family:inherit}
+  button{cursor:pointer;border:0}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .hidden{display:none!important}.flex{display:flex!important}
+  .page{width:100%;min-height:100vh;padding:18px;display:flex;align-items:center;justify-content:center}
+  .setup-wrap{width:min(1080px,96vw);margin:auto;text-align:center}
+  .main-title{font-size:clamp(36px,4vw,64px);line-height:1;font-weight:900;color:#fff;margin:0 0 8px;text-shadow:0 3px 8px rgba(0,0,0,.35)}
+  .subtitle{font-size:16px;font-weight:800;color:#dbeafe;margin:0 0 22px}
+  .panel{background:rgba(248,250,252,.96);border:4px solid #111827;border-radius:28px;box-shadow:var(--shadow)}
+  .setup-card{padding:28px 34px;text-align:left}.setup-card h2{text-align:center;margin:0 0 14px;font-size:34px;font-weight:900}.setup-card p{text-align:center;margin:0 0 18px;color:#475569;font-weight:700;line-height:1.6}
+  .row{margin:18px 0}.label{display:block;font-size:20px;font-weight:900;margin:0 0 10px;color:#1e293b}.select,.input{width:100%;font-size:18px;padding:12px 14px;border:2px solid #cbd5e1;border-radius:14px;background:#fff;outline:none}.select:focus,.input:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+  .team-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .tool-row{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px}.pill-btn{padding:10px 18px;border-radius:14px;color:#fff;font-size:16px;font-weight:900;box-shadow:0 5px #64748b}.pill-btn:active{transform:translateY(2px);box-shadow:0 3px #475569}.blue{background:#2563eb}.slate{background:#64748b}.purple{background:#9333ea}.pink{background:#c026d3}.green{background:#059669}.red{background:#dc2626}.amber{background:#f59e0b}.indigo{background:#4f46e5}
+  .suspect-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}.name-chip{padding:12px 10px;border-radius:16px;border:2px solid #cbd5e1;background:#fff;font-weight:900;color:#334155;box-shadow:0 3px 0 #cbd5e1;transition:.15s}.name-chip.selected{background:linear-gradient(135deg,#2563eb,#a21caf);color:#fff;border-color:#1d4ed8;box-shadow:0 3px 0 #334155}.name-chip:hover{transform:translateY(-1px)}
+  .hint{font-size:14px;color:#64748b!important;text-align:left!important;margin:8px 0 0!important}.count-line{font-weight:900;color:#1d4ed8;margin-top:8px}.tense-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.tense-card{display:flex;gap:10px;align-items:flex-start;background:#fff;border:2px solid #cbd5e1;border-radius:16px;padding:12px;text-align:left;cursor:pointer}.tense-card input{margin-top:4px}.tense-card strong{display:block;font-size:17px}.tense-card span{display:block;font-size:13px;color:#64748b;margin-top:4px;line-height:1.4}.rules{background:#f1f5f9;border:1px solid #cbd5e1;border-radius:18px;padding:14px 18px;margin:20px 0;font-size:16px}.rules h3{margin:0 0 8px;font-size:20px}.rules ul{margin:0;padding-left:22px;line-height:1.7}.start-btn{width:100%;padding:18px;border-radius:18px;background:#059669;color:#fff;font-size:30px;font-weight:900;box-shadow:0 7px #737373}.start-btn:active{transform:translateY(3px);box-shadow:0 4px #525252}.warning{min-height:24px;color:#dc2626;font-weight:900;text-align:center;margin:8px 0 0}
+  #game-screen{height:100vh;min-height:100vh;width:100%;padding:14px;display:none;gap:18px;align-items:stretch;justify-content:center;overflow:hidden}.left{flex:1 1 56%;min-width:360px;min-height:0;display:flex;flex-direction:column;align-items:center;gap:10px;justify-content:flex-start}.right{flex:1 1 44%;max-width:620px;min-width:420px;min-height:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;padding-right:2px}.top-rule{width:100%;max-width:720px;color:#e0f2fe;font-weight:900;text-align:center;font-size:18px;text-shadow:0 2px 5px rgba(0,0,0,.35);margin-top:3px}.timer{width:100%;max-width:720px;background:rgba(248,250,252,.96);border:2px solid #111827;border-radius:16px;padding:8px;text-align:center;font-weight:900}.timer-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#f59e0b;margin:0 3px;box-shadow:0 0 7px rgba(245,158,11,.7)}.timer-dot.off{background:#334155;opacity:.35;box-shadow:none}.timer-text{color:#d97706;margin-left:8px}
+  .wheel-wrap{position:relative;width:min(500px,74vh,88vw);height:min(500px,74vh,88vw);flex:0 0 auto;display:flex;align-items:center;justify-content:center;margin:6px auto 0;contain:layout paint;isolation:isolate;overflow:visible;transform:translateZ(0)}#wheel{width:100%;height:100%;border-radius:50%;border:10px solid #111827;box-shadow:0 0 24px rgba(255,255,255,.18) inset,0 0 22px rgba(0,0,0,.45);transition:transform 3s cubic-bezier(.25,1,.5,1);position:relative;transform-origin:50% 50%;will-change:transform;backface-visibility:hidden;transform:rotate(0deg) translateZ(0);contain:paint;overflow:hidden}.wheel-section-content{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;backface-visibility:hidden}.wheel-symbol{position:absolute;top:50%;left:50%;transform-origin:center;color:#111827;font-weight:900;text-shadow:1px 1px 3px rgba(255,255,255,.65)}#spin-btn{position:absolute;z-index:2;width:122px;height:122px;border-radius:50%;background:#2563eb;color:#fff;font-size:24px;font-weight:900;border:5px solid #475569;box-shadow:0 6px #334155}#spin-btn:before{content:'';position:absolute;top:-39px;left:50%;transform:translateX(-50%);border-left:25px solid transparent;border-right:25px solid transparent;border-bottom:40px solid #ef4444;filter:drop-shadow(2px 2px 2px rgba(0,0,0,.35))}#spin-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 3px #334155}
+  .prompt{background:rgba(248,250,252,.96);border:2px solid #111827;border-radius:18px;box-shadow:var(--shadow);padding:8px 12px;text-align:center;flex:0 0 auto}.prompt p{margin:0;min-height:32px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;line-height:1.3;overflow-wrap:anywhere}.answer-controls{display:none;grid-template-columns:1fr 1fr;gap:10px}.action-btn{padding:12px;border-radius:14px;color:#fff;font-size:19px;font-weight:900;box-shadow:0 4px #64748b}.action-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px #475569}.start-round{width:100%;padding:14px;border-radius:14px;background:#059669;color:#fff;font-size:24px;font-weight:900;box-shadow:0 4px #64748b}
+  .table-wrap{background:rgba(248,250,252,.96);border:2px solid #111827;border-radius:18px;padding:10px;box-shadow:var(--shadow);overflow:auto}.teams-table{border-collapse:collapse;width:100%;min-width:520px;background:#fff}.teams-table th,.teams-table td{border:2px solid #334155;padding:7px;text-align:center;vertical-align:middle}.teams-table th{background:#f1f5f9;font-weight:900}.active-col{background:#dbeafe!important;box-shadow:inset 0 0 8px rgba(37,99,235,.3)}.asset-name{font-weight:900;white-space:nowrap}.mini-btn{display:block;width:100%;margin:3px 0;padding:6px 8px;border-radius:9px;color:#fff;font-size:13px;font-weight:900}.suspect-box{background:rgba(248,250,252,.96);border:2px solid #111827;border-radius:18px;padding:10px;text-align:center;box-shadow:var(--shadow)}.suspect-box h3{margin:0 0 8px;font-size:18px}.game-suspects{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}.game-name{background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:8px;font-weight:900}.small-note{font-size:12px;color:#64748b;margin-top:8px;font-weight:700}.back-btn{position:fixed;right:20px;top:20px;z-index:30;background:#64748b;color:#fff;border-radius:12px;padding:10px 15px;font-weight:900;box-shadow:0 4px #334155}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}.modal{background:#f8fafc;border:4px solid #111827;border-radius:26px;box-shadow:var(--shadow);padding:24px;width:min(720px,96vw);max-height:90vh;overflow:auto;text-align:center;display:none}.modal h2{margin:0 0 14px;font-size:30px}.modal p{font-size:18px;line-height:1.5}.modal-options{display:grid;gap:10px}.note-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;text-align:left}.note-card{background:#fff;border:2px solid #cbd5e1;border-left:7px solid #3b82f6;border-radius:14px;padding:10px}.note-card.evi{border-left-color:#f59e0b}.tag{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:900;background:#dbeafe;color:#1d4ed8}.tag.evi{background:#fef3c7;color:#b45309}.final-grid{display:grid;gap:12px;text-align:left}.final-grid label{font-size:17px;font-weight:900}.final-grid select{margin-top:5px;width:100%;padding:11px;border:2px solid #cbd5e1;border-radius:12px;background:#fff;font-size:17px}.modal-actions{display:grid;gap:10px;margin-top:16px}.close-x{background:#475569;color:#fff;border-radius:14px;padding:10px 18px;font-weight:900;font-size:18px}.victory h2{color:#eab308;font-size:42px}
+  @media(max-width:980px){#game-screen{height:auto;min-height:100vh;overflow-y:auto;flex-direction:column}.right{max-width:none;min-width:0;width:100%;overflow:visible;padding-right:0}.left{min-width:0}.wheel-wrap{width:min(430px,86vw);height:min(430px,86vw)}.back-btn{position:static;align-self:flex-end}}
+</style>
 </head>
-<body class="w-screen flex items-center justify-center p-4">
-  <div id="setup-screen" class="w-full max-w-xl mx-auto text-center">
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-3">神秘小偷追踪</h1>
-    <p class="text-blue-100 font-bold mb-6">Find clues. Catch the thief. Save the treasure!</p>
-    <div class="modal-content p-6 sm:p-8 rounded-3xl">
-      <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mb-4">游戏设置</h2>
-      <p class="text-sm text-slate-600 mb-4 leading-relaxed">每局都会随机生成一名真正的小偷。答题、转盘、收集卡片，最后进入 Final Chase。</p>
-      <div class="mb-5 text-left">
-        <label for="team-count" class="block text-lg font-black mb-2 text-slate-700">队伍数量</label>
-        <select id="team-count" class="w-full p-3 text-lg border-2 border-slate-300 rounded-xl bg-white">
-          <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
-        </select>
+<body>
+<div id="setup-screen" class="page">
+  <div class="setup-wrap">
+    <h1 class="main-title">神秘小偷追踪</h1>
+    <p class="subtitle">Find clues. Catch the thief. Save the treasure!</p>
+    <div class="panel setup-card">
+      <h2>游戏设置</h2>
+      <p>每局都会随机生成一名真正的小偷。答题、转盘、收集卡片，最后进入 Final Chase。</p>
+      <div class="row">
+        <label for="team-count" class="label">队伍数量</label>
+        <select id="team-count" class="select"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option></select>
       </div>
-      <div id="team-names-container" class="space-y-3 mb-6"></div>
-      <div class="mb-6 text-left">
-        <label class="block text-lg font-black mb-2 text-slate-700">本局嫌疑人名单</label>
-        <div class="flex flex-wrap gap-2 mb-3">
-          <button id="select-all-suspects-btn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2 px-3 rounded-xl text-sm btn">全选</button>
-          <button id="clear-suspects-btn" type="button" class="bg-slate-500 hover:bg-slate-600 text-white font-black py-2 px-3 rounded-xl text-sm btn">清空</button>
-          <button id="random-6-suspects-btn" type="button" class="bg-purple-600 hover:bg-purple-700 text-white font-black py-2 px-3 rounded-xl text-sm btn">随机6人</button>
-          <button id="random-8-suspects-btn" type="button" class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-black py-2 px-3 rounded-xl text-sm btn">随机8人</button>
+      <div id="team-names-container" class="team-inputs"></div>
+      <div class="row">
+        <div class="label">本局嫌疑人名单</div>
+        <div class="hint">点击名字即可选中/取消；建议每局选择 6-10 人。系统会随机分配地点、衣服和物品，但游戏中不会公开。</div>
+        <div class="tool-row">
+          <button id="select-all-btn" class="pill-btn blue" type="button">全选</button>
+          <button id="clear-btn" class="pill-btn slate" type="button">清空</button>
+          <button id="random-6-btn" class="pill-btn purple" type="button">随机6人</button>
+          <button id="random-8-btn" class="pill-btn pink" type="button">随机8人</button>
         </div>
-        <div id="suspect-count-label" class="text-sm font-black text-emerald-700 mb-2"></div>
-        <div id="suspect-picker-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-3 rounded-2xl bg-slate-50 border-2 border-slate-200"></div>
-        <p class="text-xs text-slate-500 mt-2 leading-relaxed">建议每局选择 6-10 人；系统会给每个嫌疑人随机分配地点、衣服和物品，真正的小偷也会每局随机变化。</p>
+        <input id="suspect-filter" class="input" placeholder="可输入名字快速筛选，也可以直接点下面名字" />
+        <div id="suspect-count" class="count-line"></div>
+        <div id="suspect-list" class="suspect-grid"></div>
       </div>
-      <div class="rounded-2xl bg-slate-100 border border-slate-300 p-4 text-left text-sm text-slate-700 mb-6">
-        <div class="font-black mb-2">获胜条件</div>
-        <ul class="list-disc pl-5 space-y-1">
+      <div class="row">
+        <div class="label">线索句子时态</div>
+        <div class="tense-options">
+          <label class="tense-card"><input type="radio" name="tense" value="present" checked><span><strong>一般现在时版</strong><span>wears / is near / has got</span></span></label>
+          <label class="tense-card"><input type="radio" name="tense" value="continuous"><span><strong>现在进行时版</strong><span>is wearing / is hiding near / has got</span></span></label>
+          <label class="tense-card"><input type="radio" name="tense" value="past"><span><strong>过去时版</strong><span>wore / was near / had got</span></span></label>
+        </div>
+      </div>
+      <div class="rules">
+        <h3>获胜条件</h3>
+        <ul>
           <li>答对题后才能转动转盘。</li>
           <li>收集：● Clue x3、◆ Evidence x2、★ Badge 徽章 x1。</li>
           <li>然后开启 Final Chase：地点 + 物品 + 人物。</li>
           <li>答错会减少午夜倒计时。</li>
         </ul>
       </div>
-      <button id="start-game-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-4 rounded-2xl text-2xl btn">开始调查</button>
+      <button id="start-game-btn" class="start-btn" type="button">开始调查</button>
+      <div id="setup-warning" class="warning"></div>
     </div>
   </div>
+</div>
 
-  <div id="game-screen" class="hidden w-full max-w-7xl mx-auto flex-col lg:flex-row items-center justify-center gap-8">
-    <div class="w-full lg:w-3/5 flex flex-col items-center justify-center gap-4">
-      <div id="rules-container" class="w-full max-w-2xl text-center text-slate-100"></div>
-      <div class="w-full max-w-2xl modal-content rounded-3xl p-4 text-center">
-        <div class="flex items-center justify-center gap-3 flex-wrap">
-          <span class="font-black text-slate-800 text-lg">午夜倒计时</span>
-          <span id="timer-dots"></span>
-          <span id="timer-text" class="font-black text-amber-600"></span>
-        </div>
-      </div>
-      <div id="wheel-container" class="relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] md:w-[500px] md:h-[500px] flex items-center justify-center mx-auto">
-        <div id="wheel"></div>
-        <div id="wheel-center" class="absolute w-full h-full flex items-center justify-center z-10">
-          <button id="spin-btn" class="w-[105px] h-[105px] sm:w-[125px] sm:h-[125px] rounded-full text-xl sm:text-2xl font-black bg-blue-500 hover:bg-blue-600 text-white z-20" disabled>寻找<br>线索</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="w-full lg:w-2/5 flex flex-col gap-5 items-center justify-start">
-      <div id="status-bar" class="w-full text-center p-4 rounded-3xl modal-content">
-        <p id="action-prompt" class="text-xl sm:text-2xl text-slate-800 min-h-[76px] flex items-center justify-center leading-relaxed font-bold"></p>
-      </div>
-      <div id="answer-controls" class="hidden justify-center gap-4 sm:gap-8 w-full">
-        <button id="correct-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">回答正确</button>
-        <button id="incorrect-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-black py-3 px-8 rounded-xl text-lg sm:text-xl btn">回答错误</button>
-      </div>
-      <div id="controls" class="w-full space-y-3">
-        <button id="start-round-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 px-12 rounded-xl text-xl sm:text-2xl btn">开始游戏</button>
-      </div>
-      <div id="teams-info-container" class="w-full mt-2"></div>
-    </div>
-
-    <button id="back-to-setup-btn" class="fixed right-8 top-1/2 -translate-y-1/2 z-40 bg-slate-500 hover:bg-slate-600 text-white font-black py-3 px-6 rounded-xl text-lg btn shadow-2xl">返回设置</button>
+<div id="game-screen">
+  <div class="left">
+    <div id="rules-container" class="top-rule"></div>
+    <div class="timer"><span>午夜倒计时</span> <span id="timer-dots"></span><span id="timer-text" class="timer-text"></span></div>
+    <div class="wheel-wrap"><div id="wheel"></div><button id="spin-btn" disabled>寻找<br>线索</button></div>
   </div>
-
-  <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-65 hidden items-center justify-center z-50 p-4">
-    <div id="victory-modal" class="modal-content p-8 sm:p-10 rounded-3xl text-center hidden flex-col items-center w-full max-w-md">
-      <h2 class="text-4xl sm:text-5xl font-black text-yellow-500 mb-4">破案成功！</h2>
-      <p id="victory-message" class="text-xl sm:text-2xl text-slate-800 mb-8 leading-relaxed font-bold"></p>
-      <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-8 rounded-2xl text-xl btn">再来一局</button>
-    </div>
-
-    <div id="steal-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
-      <h2 class="text-2xl sm:text-3xl font-black text-red-700 mb-4">小偷干扰</h2>
-      <p class="text-lg sm:text-xl text-slate-700 mb-6 font-bold">选择一队，截取一张卡。</p>
-      <div id="steal-options" class="space-y-3 mb-2 max-h-60 overflow-y-auto"></div>
-    </div>
-
-    <div id="choice-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden w-full max-w-lg">
-      <h2 id="choice-title" class="text-2xl sm:text-3xl font-black text-slate-800 mb-4"></h2>
-      <p id="choice-prompt" class="text-lg sm:text-xl text-slate-700 mb-6 leading-relaxed font-bold"></p>
-      <div id="choice-options" class="space-y-3 max-h-72 overflow-y-auto"></div>
-    </div>
-
-    <div id="case-card-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-lg">
-      <h2 class="text-2xl sm:text-3xl font-black text-emerald-700 mb-4">案件卡</h2>
-      <div id="case-card-content" class="text-slate-800 mb-6 leading-relaxed font-bold"></div>
-      <button id="case-card-ok-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-8 rounded-2xl text-lg btn">确定</button>
-    </div>
-
-    <div id="final-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-2xl">
-      <h2 class="text-3xl font-black text-slate-800 mb-4">Final Chase</h2>
-      <p id="final-message" class="text-xl text-slate-800 mb-5 leading-relaxed font-bold"></p>
-      <div id="final-step-box" class="w-full"></div>
-      <div class="w-full flex flex-col gap-3 mt-5">
-        <button id="final-submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 px-6 rounded-2xl text-lg btn">提交 Final Chase</button>
-        <button id="final-cancel-btn" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-black py-3 px-6 rounded-2xl text-lg btn">继续调查</button>
-      </div>
-    </div>
-
-    <div id="notebook-modal" class="modal-content p-6 sm:p-8 rounded-3xl text-center hidden flex-col items-center w-full max-w-3xl">
-      <h2 id="notebook-title" class="text-2xl sm:text-3xl font-black text-slate-800 mb-4"></h2>
-      <div id="notebook-summary" class="text-slate-700 mb-4 text-sm font-bold"></div>
-      <div class="w-full grid md:grid-cols-2 gap-4 text-left max-h-[60vh] overflow-y-auto">
-        <div><div class="font-black text-blue-700 mb-2">● Clue 卡片 线索卡</div><div id="notebook-clues" class="space-y-3"></div></div>
-        <div><div class="font-black text-amber-700 mb-2">◆ Evidence 卡片 证据卡</div><div id="notebook-evidence" class="space-y-3"></div></div>
-      </div>
-      <button id="notebook-close-btn" type="button" onclick="window.forceCloseModals && window.forceCloseModals()" class="mt-6 bg-slate-700 hover:bg-slate-800 text-white font-black py-3 px-8 rounded-2xl text-lg btn">关闭笔记</button>
-    </div>
+  <div class="right">
+    <div class="prompt"><p id="action-prompt"></p></div>
+    <div id="answer-controls" class="answer-controls"><button id="correct-btn" class="action-btn green">回答正确</button><button id="incorrect-btn" class="action-btn red">回答错误</button></div>
+    <button id="start-round-btn" class="start-round">开始游戏</button>
+    <div id="teams-info-container" class="table-wrap"></div>
+    <div id="suspect-public-box" class="suspect-box"></div>
   </div>
+  <button id="back-to-setup-btn" class="back-btn">返回设置</button>
+</div>
+
+<div id="modal-overlay" class="overlay">
+  <div id="victory-modal" class="modal victory"><h2>破案成功！</h2><p id="victory-message"></p><button onclick="location.reload()" class="action-btn blue">再来一局</button></div>
+  <div id="steal-modal" class="modal"><h2>小偷干扰</h2><p>选择一队，截取一张卡。</p><div id="steal-options" class="modal-options"></div></div>
+  <div id="choice-modal" class="modal"><h2 id="choice-title"></h2><p id="choice-prompt"></p><div id="choice-options" class="modal-options"></div></div>
+  <div id="case-card-modal" class="modal"><h2>案件卡</h2><div id="case-card-content"></div><button id="case-card-ok-btn" class="action-btn green">确定</button></div>
+  <div id="final-modal" class="modal"><h2>Final Chase</h2><p id="final-message"></p><div id="final-step-box"></div><div class="modal-actions"><button id="final-submit-btn" class="action-btn red">提交 Final Chase</button><button id="final-cancel-btn" class="action-btn slate">继续调查</button></div></div>
+  <div id="notebook-modal" class="modal"><h2 id="notebook-title"></h2><div id="notebook-summary" class="small-note"></div><div class="note-grid"><div><h3>● Clue 卡片</h3><div id="notebook-clues"></div></div><div><h3>◆ Evidence 卡片</h3><div id="notebook-evidence"></div></div></div><button id="notebook-close-btn" class="close-x">关闭笔记</button></div>
+</div>
 
 <script>
-window.onload = function() {
-  const setupScreen = document.getElementById('setup-screen');
-  const gameScreen = document.getElementById('game-screen');
-  const teamCountSelect = document.getElementById('team-count');
-  const teamNamesContainer = document.getElementById('team-names-container');
-  const suspectPickerContainer = document.getElementById('suspect-picker-container');
-  const suspectCountLabel = document.getElementById('suspect-count-label');
-  const selectAllSuspectsBtn = document.getElementById('select-all-suspects-btn');
-  const clearSuspectsBtn = document.getElementById('clear-suspects-btn');
-  const random6SuspectsBtn = document.getElementById('random-6-suspects-btn');
-  const random8SuspectsBtn = document.getElementById('random-8-suspects-btn');
-  const startGameBtn = document.getElementById('start-game-btn');
-  const actionPrompt = document.getElementById('action-prompt');
-  const teamsInfoContainer = document.getElementById('teams-info-container');
-  const wheel = document.getElementById('wheel');
-  const startRoundBtn = document.getElementById('start-round-btn');
-  const spinBtn = document.getElementById('spin-btn');
-  const modalOverlay = document.getElementById('modal-overlay');
-  const victoryModal = document.getElementById('victory-modal');
-  const victoryMessage = document.getElementById('victory-message');
-  const stealModal = document.getElementById('steal-modal');
-  const stealOptions = document.getElementById('steal-options');
-  const answerControls = document.getElementById('answer-controls');
-  const correctBtn = document.getElementById('correct-btn');
-  const incorrectBtn = document.getElementById('incorrect-btn');
-  const rulesContainer = document.getElementById('rules-container');
-  const backToSetupBtn = document.getElementById('back-to-setup-btn');
-  const choiceModal = document.getElementById('choice-modal');
-  const choiceTitle = document.getElementById('choice-title');
-  const choicePrompt = document.getElementById('choice-prompt');
-  const choiceOptions = document.getElementById('choice-options');
-  const caseCardModal = document.getElementById('case-card-modal');
-  const caseCardContent = document.getElementById('case-card-content');
-  const caseCardOkBtn = document.getElementById('case-card-ok-btn');
-  const finalModal = document.getElementById('final-modal');
-  const finalMessage = document.getElementById('final-message');
-  const finalStepBox = document.getElementById('final-step-box');
-  const finalSubmitBtn = document.getElementById('final-submit-btn');
-  const finalCancelBtn = document.getElementById('final-cancel-btn');
-  const notebookModal = document.getElementById('notebook-modal');
-  const notebookTitle = document.getElementById('notebook-title');
-  const notebookSummary = document.getElementById('notebook-summary');
-  const notebookClues = document.getElementById('notebook-clues');
-  const notebookEvidence = document.getElementById('notebook-evidence');
-  const notebookCloseBtn = document.getElementById('notebook-close-btn');
-  const timerDots = document.getElementById('timer-dots');
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const setupScreen = $('setup-screen'), gameScreen = $('game-screen'), teamCountSelect = $('team-count'), teamNamesContainer = $('team-names-container');
+  const startGameBtn = $('start-game-btn'), setupWarning = $('setup-warning'), suspectList = $('suspect-list'), suspectFilter = $('suspect-filter'), suspectCount = $('suspect-count');
+  const actionPrompt = $('action-prompt'), teamsInfoContainer = $('teams-info-container'), wheel = $('wheel'), startRoundBtn = $('start-round-btn'), spinBtn = $('spin-btn');
+  const modalOverlay = $('modal-overlay'), victoryModal = $('victory-modal'), victoryMessage = $('victory-message'), stealModal = $('steal-modal'), stealOptions = $('steal-options');
+  const answerControls = $('answer-controls'), correctBtn = $('correct-btn'), incorrectBtn = $('incorrect-btn'), rulesContainer = $('rules-container'), backToSetupBtn = $('back-to-setup-btn');
+  const choiceModal = $('choice-modal'), choiceTitle = $('choice-title'), choicePrompt = $('choice-prompt'), choiceOptions = $('choice-options');
+  const caseCardModal = $('case-card-modal'), caseCardContent = $('case-card-content'), caseCardOkBtn = $('case-card-ok-btn');
+  const finalModal = $('final-modal'), finalMessage = $('final-message'), finalStepBox = $('final-step-box'), finalSubmitBtn = $('final-submit-btn'), finalCancelBtn = $('final-cancel-btn');
+  const notebookModal = $('notebook-modal'), notebookTitle = $('notebook-title'), notebookSummary = $('notebook-summary'), notebookClues = $('notebook-clues'), notebookEvidence = $('notebook-evidence'), notebookCloseBtn = $('notebook-close-btn');
+  const timerDots = $('timer-dots'), timerText = $('timer-text'), suspectPublicBox = $('suspect-public-box');
 
-  // Robust modal closer: this avoids browser-specific ID globals and fixes unresponsive modal close buttons.
-  window.forceCloseModals = function() {
-    [victoryModal, stealModal, choiceModal, caseCardModal, finalModal, notebookModal].forEach(function(m) {
-      if (!m) return;
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      m.style.display = 'none';
-    });
-    modalOverlay.style.display = 'none';
-    modalOverlay.classList.add('hidden');
-    modalOverlay.classList.remove('flex');
+  const studentNames = ['Rocket','Cassie','Rachel','Bobo','Hannah','Cici','Joe','Leon','Sylvia','Gorman','Ryan','Aaron','Annie','Yuki','Linna','Helen','Ken','Charlie','Via','Eva'];
+  const defaultNames = ['福尔摩斯队','华生队','柯南队','波洛队','星星队','飞鹰队'];
+  const places = ['playground','computer room','zoo','garden','library','music room','art room','classroom','canteen','toy shop','supermarket','park','science room','bookshop','cinema','sports hall','school office','bus stop','museum','animal corner','reading corner','school gate','dance room','kitchen'];
+  const clothes = ['a black hat','a yellow raincoat','a football shirt','a flower hat','a red scarf','a blue jacket','green glasses','a purple coat','a white T-shirt','a striped sweater','a brown cap','a pink hoodie','a grey vest','a long dress','a short skirt','orange shoes','a school uniform','a star badge','a blue tie','a rainbow shirt','a warm coat','a funny mask','red gloves','a detective coat'];
+  const items = ['a yellow ruler','a green apple','a map','a cookie box','a silver key','a red pencil','a small notebook','a toy car','a blue bag','a storybook','a water bottle','a lunch box','a camera','a golden ticket','a football','a teddy bear','a pencil case','a purple umbrella','a sandwich','a pair of scissors','a sticker book','a magic card','a green balloon','a chocolate bar','a magnifying glass','a music box','a comic book','a school card'];
+
+  const tenseTexts = {
+    present: {
+      title:'一般现在时版',
+      place:t => `The thief is near the ${t.place}.`,
+      wear:t => `The thief wears ${t.wear}.`,
+      item:t => `The thief has got ${t.item}.`,
+      negPlace:t => `The thief isn't near the ${t.place}.`,
+      negWear:t => `The thief doesn't wear ${t.wear}.`,
+      negItem:t => `The thief hasn't got ${t.item}.`,
+      ePlace:t => `${t.name} is near the ${t.place}.`,
+      eWear:t => `${t.name} wears ${t.wear}.`,
+      eItem:t => `${t.name} has got ${t.item}.`,
+      qPlace:'Step 1: Where is the thief?', qItem:'Step 2: What has the thief got?', qPerson:'Step 3: Who is the thief?'
+    },
+    continuous: {
+      title:'现在进行时版',
+      place:t => `The thief is hiding near the ${t.place}.`,
+      wear:t => `The thief is wearing ${t.wear}.`,
+      item:t => `The thief has got ${t.item}.`,
+      negPlace:t => `The thief isn't hiding near the ${t.place}.`,
+      negWear:t => `The thief isn't wearing ${t.wear}.`,
+      negItem:t => `The thief hasn't got ${t.item}.`,
+      ePlace:t => `${t.name} is hiding near the ${t.place}.`,
+      eWear:t => `${t.name} is wearing ${t.wear}.`,
+      eItem:t => `${t.name} has got ${t.item}.`,
+      qPlace:'Step 1: Where is the thief hiding?', qItem:'Step 2: What has the thief got?', qPerson:'Step 3: Who is the thief?'
+    },
+    past: {
+      title:'过去时版',
+      place:t => `The thief was near the ${t.place}.`,
+      wear:t => `The thief wore ${t.wear}.`,
+      item:t => `The thief had got ${t.item}.`,
+      negPlace:t => `The thief wasn't near the ${t.place}.`,
+      negWear:t => `The thief didn't wear ${t.wear}.`,
+      negItem:t => `The thief hadn't got ${t.item}.`,
+      ePlace:t => `${t.name} was near the ${t.place}.`,
+      eWear:t => `${t.name} wore ${t.wear}.`,
+      eItem:t => `${t.name} had got ${t.item}.`,
+      qPlace:'Step 1: Where was the thief?', qItem:'Step 2: What had the thief got?', qPerson:'Step 3: Who was the thief?'
+    }
   };
-  const timerText = document.getElementById('timer-text');
-
-  let teams = [];
-  let currentPlayerIndex = 0;
-  let isSpinning = false;
-  let isExtraSpinQuestion = false;
-  let currentWheelRotation = 0;
-  let pendingFinalTeamIndex = null;
-  let trueThief = null;
-  let clueDeck = [];
-  let evidenceDeck = [];
-  let timerMax = 8;
-  let timerLeft = 8;
-  const defaultNames = ['福尔摩斯队', '华生队', '柯南队', '波洛队', '星星队', '飞鹰队'];
-
-  const participantNames = ['Rocket', 'Cassie', 'Rachel', 'Bobo', 'Hannah', 'Cici', 'Joe', 'Leon', 'Sylvia', 'Gorman', 'Ryan', 'Aaron', 'Annie', 'Yuki', 'Linna', 'Helen', 'Ken', 'Charlie', 'Via', 'Eva'];
-  const placePool = [
-    'library', 'cafeteria', 'art room', 'playground', 'music room', 'computer room', 'nurse's office', 'science lab',
-    'classroom', 'gym', 'toy shop', 'supermarket', 'park', 'zoo', 'garden', 'kitchen', 'dining room', 'study',
-    'cinema', 'bookshop', 'museum', 'station', 'bakery', 'swimming pool'
-  ];
-  const clothesPool = [
-    'a red hoodie', 'a blue cap', 'a yellow jacket', 'a green scarf', 'a purple coat', 'white shoes', 'black glasses',
-    'a pink dress', 'a striped T-shirt', 'a football shirt', 'a brown sweater', 'a rainbow hat', 'a grey school uniform',
-    'orange socks', 'a white apron', 'a black hat', 'a red scarf', 'a blue backpack', 'a pair of sunglasses', 'a green coat',
-    'a star T-shirt', 'a flower hat', 'a silver watch', 'a yellow raincoat'
-  ];
-  const itemPool = [
-    'a silver key', 'a comic book', 'a toy car', 'a pink pencil', 'a yellow ruler', 'a football', 'a water bottle',
-    'a lunchbox', 'a camera', 'a notebook', 'a magic wand', 'a teddy bear', 'a green apple', 'a paintbrush',
-    'a storybook', 'a small bell', 'a red envelope', 'a map', 'a glue stick', 'a flashlight', 'a purple sticker',
-    'a golden coin', 'a toy robot', 'a cookie box'
-  ];
-  let suspects = [];
 
   const wheelSections = [
-    { result: 'clue', symbol: '●', label: 'Clue', weight: 30, color: '#93C5FD' },
-    { result: 'evidence', symbol: '◆', label: 'Evidence', weight: 24, color: '#FDE68A' },
-    { result: 'badge', symbol: '★', label: 'Badge 徽章', weight: 14, color: '#C4B5FD' },
-    { result: 'thief', symbol: '×', label: 'Trouble', weight: 8, color: '#FCA5A5' },
-    { result: 'shield', symbol: '□', label: 'Shield 防偷', weight: 8, color: '#BBF7D0' },
-    { result: 'mystery', symbol: '?', label: '案件卡', weight: 16, color: '#A7F3D0' }
+    { result:'clue', symbol:'●', label:'Clue', weight:30, color:'#93C5FD' },
+    { result:'evidence', symbol:'◆', label:'Evidence', weight:24, color:'#FDE68A' },
+    { result:'badge', symbol:'★', label:'Badge 徽章', weight:14, color:'#C4B5FD' },
+    { result:'thief', symbol:'×', label:'Trouble', weight:8, color:'#FCA5A5' },
+    { result:'shield', symbol:'□', label:'Shield 防偷', weight:8, color:'#BBF7D0' },
+    { result:'mystery', symbol:'?', label:'案件卡', weight:16, color:'#A7F3D0' }
   ];
 
-  const synth = new Tone.Synth().toDestination();
-  const metalSynth = new Tone.MetalSynth({ frequency:150, envelope:{attack:.001, decay:.4, release:.2}, harmonicity:5.1, modulationIndex:32, resonance:4000, octaves:1.5 }).toDestination();
-  function playSound(note, duration='8n') { try { Tone.start(); synth.triggerAttackRelease(note, duration); } catch(e) {} }
-  function playCoinSound() { try { Tone.start(); metalSynth.triggerAttackRelease('C5','16n',Tone.now()); } catch(e) {} }
+  let teams=[], currentPlayerIndex=0, isSpinning=false, isExtraSpinQuestion=false, currentWheelRotation=0, pendingFinalTeamIndex=null;
+  let identities=[], trueThief=null, clueDeck=[], evidenceDeck=[], timerMax=8, timerLeft=8, chosenTense='present';
+  let usedClueKeys = new Set(), usedEvidenceKeys = new Set();
+  const selected = new Set(studentNames.slice(0,8));
 
-  function shuffle(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  function esc(str){return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));}
+  function rand(){
+    try{
+      if(window.crypto && window.crypto.getRandomValues){
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+      }
+    }catch(e){}
+    const now = Date.now();
+    const perf = (window.performance && performance.now) ? performance.now() : 0;
+    return (Math.random() + ((now % 100000) / 100000) + ((perf % 1000) / 1000)) % 1;
+  }
+  function randomInt(max){return Math.floor(rand()*max);}
+  function shuffle(array){const arr=[...array];for(let i=arr.length-1;i>0;i--){const j=randomInt(i+1);[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+  function pick(array){return array[randomInt(array.length)];}
+  function getWeightedLayout(items){const total=items.reduce((s,i)=>s+i.weight,0);let a=0;return items.map(item=>{const start=a,size=item.weight/total*360;a+=size;return {...item,startAngle:start,endAngle:a,midAngle:start+size/2};});}
+  function pickWeightedItem(items){const total=items.reduce((s,i)=>s+i.weight,0);let roll=rand()*total;for(const item of items){roll-=item.weight;if(roll<0)return item;}return items[items.length-1];}
+  function playSound(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.frequency.value=520;gain.gain.setValueAtTime(.08,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.12);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.13);}catch(e){}}
+
+  function updateTeamNameInputs(){const count=parseInt(teamCountSelect.value,10);teamNamesContainer.innerHTML='';for(let i=0;i<count;i++){const input=document.createElement('input');input.type='text';input.id=`team-name-${i}`;input.value=defaultNames[i]||`侦探队 ${i+1}`;input.className='input';teamNamesContainer.appendChild(input);}}
+  function renderSuspectButtons(){const q=suspectFilter.value.trim().toLowerCase();suspectList.innerHTML='';studentNames.filter(n=>n.toLowerCase().includes(q)).forEach(name=>{const btn=document.createElement('button');btn.type='button';btn.className='name-chip'+(selected.has(name)?' selected':'');btn.textContent=name;btn.onclick=()=>{selected.has(name)?selected.delete(name):selected.add(name);renderSuspectButtons();};suspectList.appendChild(btn);});suspectCount.textContent=`已选择 ${selected.size} 人：${[...selected].join('、')||'无'}`;}
+  function setRandomSuspects(count){selected.clear();shuffle(studentNames).slice(0,count).forEach(n=>selected.add(n));renderSuspectButtons();}
+
+  function updateWheelBackground(){const layout=getWeightedLayout(wheelSections);wheel.style.background=`conic-gradient(${layout.map(s=>`${s.color} ${s.startAngle}deg ${s.endAngle}deg`).join(',')})`;}
+  function positionWheelSymbols(){wheel.innerHTML='';updateWheelBackground();const radius=wheel.offsetWidth/2||250;const symbolSize=Math.max(34,radius*.16);const trans=radius*.65;getWeightedLayout(wheelSections).forEach(section=>{const div=document.createElement('div');div.className='wheel-section-content';const transform=`translate(-50%, -50%) rotate(${section.midAngle}deg) translateY(-${trans}px) rotate(-${section.midAngle}deg)`;div.innerHTML=`<span class="wheel-symbol" style="font-size:${symbolSize}px;transform:${transform};">${section.symbol}</span>`;wheel.appendChild(div);});}
+  function createTeam(name){return {name,clues:0,evidence:0,badges:0,shields:0,skipTurns:0,clueNotes:[],evidenceNotes:[]};}
+  function canFinalChase(team){return team.clues>=3 && team.evidence>=2 && team.badges>=1;}
+  function getAssetCounts(team){return `●${team.clues} / ◆${team.evidence} / ★${team.badges} / □${team.shields}`;}
+
+  function lastThiefStorageKey(){return 'mystery-thief-last:' + [...selected].sort().join('|');}
+  function chooseTrueThief(list){
+    if(!list.length) return null;
+    let last='';
+    try{last = localStorage.getItem(lastThiefStorageKey()) || '';}catch(e){}
+    let pool = list;
+    if(last && list.length > 1){
+      const filtered = list.filter(s => s.name !== last);
+      if(filtered.length) pool = filtered;
     }
-    return arr;
+    const chosen = pick(pool);
+    try{localStorage.setItem(lastThiefStorageKey(), chosen.name);}catch(e){}
+    return chosen;
   }
-
-  function getWeightedLayout(items) {
-    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-    let currentAngle = 0;
-    return items.map(item => {
-      const startAngle = currentAngle;
-      const angleSize = (item.weight / totalWeight) * 360;
-      currentAngle += angleSize;
-      return { ...item, startAngle, endAngle: currentAngle, midAngle: startAngle + angleSize / 2 };
+  function uniqueCards(cards){
+    const seen = new Set();
+    return cards.filter(card => {
+      const key = card.en;
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
   }
-  function pickWeightedItem(items) {
-    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-    let roll = Math.random() * totalWeight;
-    for (const item of items) { roll -= item.weight; if (roll < 0) return item; }
-    return items[items.length - 1];
+  function buildIdentities(){
+    const names=shuffle([...selected]);
+    const p=shuffle(places), w=shuffle(clothes), it=shuffle(items);
+    identities=names.map((name,i)=>({name,place:p[i%p.length],wear:w[i%w.length],item:it[i%it.length]}));
+    trueThief=chooseTrueThief(identities);
   }
-  function updateWheelBackground() {
-    const layout = getWeightedLayout(wheelSections);
-    wheel.style.background = `conic-gradient(${layout.map(s => `${s.color} ${s.startAngle}deg ${s.endAngle}deg`).join(', ')})`;
-  }
-  function positionWheelSymbols() {
-    wheel.innerHTML = '';
-    updateWheelBackground();
-    const wheelRadius = wheel.offsetWidth / 2;
-    const symbolSize = Math.max(34, wheelRadius * .16);
-    const symbolTranslation = wheelRadius * .65;
-    getWeightedLayout(wheelSections).forEach(section => {
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'wheel-section-content';
-      const transformStyle = `translate(-50%, -50%) rotate(${section.midAngle}deg) translateY(-${symbolTranslation}px) rotate(-${section.midAngle}deg)`;
-      contentDiv.innerHTML = `<span class="wheel-symbol" style="font-size:${symbolSize}px; transform:${transformStyle};">${section.symbol}</span>`;
-      wheel.appendChild(contentDiv);
-    });
-  }
-
-  function updateTeamNameInputs() {
-    const count = parseInt(teamCountSelect.value);
-    teamNamesContainer.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.id = `team-name-${i}`;
-      input.placeholder = `侦探队 ${i + 1}`;
-      input.value = defaultNames[i];
-      input.className = 'w-full p-3 text-lg border-2 border-slate-300 rounded-xl';
-      teamNamesContainer.appendChild(input);
-    }
-  }
-
-  function renderSuspectPicker() {
-    suspectPickerContainer.innerHTML = '';
-    participantNames.forEach((name, index) => {
-      const label = document.createElement('label');
-      label.className = 'flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 font-black text-slate-700 cursor-pointer hover:bg-blue-50';
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.className = 'suspect-check w-4 h-4 accent-blue-600';
-      input.value = name;
-      input.checked = index < 8;
-      input.addEventListener('change', updateSuspectCount);
-      const span = document.createElement('span');
-      span.textContent = name;
-      label.appendChild(input);
-      label.appendChild(span);
-      suspectPickerContainer.appendChild(label);
-    });
-    updateSuspectCount();
-  }
-
-  function updateSuspectCount() {
-    const count = getSelectedSuspectNames().length;
-    suspectCountLabel.textContent = `已选择 ${count} 名嫌疑人（至少 4 名）`;
-    suspectCountLabel.className = count >= 4 ? 'text-sm font-black text-emerald-700 mb-2' : 'text-sm font-black text-red-600 mb-2';
-  }
-
-  function getSelectedSuspectNames() {
-    return Array.from(document.querySelectorAll('.suspect-check:checked')).map(input => input.value);
-  }
-
-  function setAllSuspects(checked) {
-    document.querySelectorAll('.suspect-check').forEach(input => input.checked = checked);
-    updateSuspectCount();
-  }
-
-  function randomSelectSuspects(count) {
-    const picks = new Set(shuffle(participantNames).slice(0, count));
-    document.querySelectorAll('.suspect-check').forEach(input => input.checked = picks.has(input.value));
-    updateSuspectCount();
-  }
-
-  function makeSuspectsForRound(names) {
-    const places = shuffle(placePool);
-    const clothes = shuffle(clothesPool);
-    const items = shuffle(itemPool);
-    return names.map((name, index) => ({
-      name: `suspect-${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-      display: name,
-      displayZh: name,
-      place: places[index % places.length],
-      wear: clothes[index % clothes.length],
-      item: items[index % items.length]
-    }));
-  }
-
-  function buildCaseDecks(resetThief=true) {
-    if (!suspects.length) return;
-    if (resetThief || !trueThief || !suspects.some(s => s.name === trueThief.name)) trueThief = suspects[Math.floor(Math.random() * suspects.length)];
-    const others = shuffle(suspects.filter(s => s.name !== trueThief.name));
-    const pickOther = (index) => others[index % others.length] || trueThief;
-    const clue卡片 = [
-      { title:'Place Clue', en:`The thief was near the ${trueThief.place}.`, type:'true' },
-      { title:'Clothes Clue', en:`The thief wore ${trueThief.wear}.`, type:'true' },
-      { title:'Thing Clue', en:`The thief had ${trueThief.item}.`, type:'true' },
-      { title:'Name Clue', en:`The thief's name starts with "${trueThief.display.charAt(0)}".`, type:'true' },
-      { title:'Name Clue', en:`The thief's name has ${trueThief.display.length} letters.`, type:'true' },
-      { title:'Not There', en:`The thief was not near the ${pickOther(0).place}.`, type:'true' },
-      { title:'Not This', en:`The thief did not wear ${pickOther(1).wear}.`, type:'true' },
-      { title:'Not This', en:`The thief did not have ${pickOther(2).item}.`, type:'true' },
-      { title:'Not This Person', en:`The thief was not ${pickOther(3).display}.`, type:'true' },
-      { title:'After Class', en:`Someone saw the thief near the ${trueThief.place} after class.`, type:'true' },
-      { title:'Look Clue', en:`The thief looked like someone wearing ${trueThief.wear}.`, type:'true' },
-      { title:'Thing Clue', en:`A key thing was ${trueThief.item}.`, type:'true' }
+  function makeAllClueCards(){
+    const t=tenseTexts[chosenTense];
+    const others=identities.filter(s=>s.name!==trueThief.name);
+    const cards=[
+      {title:'Place Clue',en:t.place(trueThief)},
+      {title:'Clothes Clue',en:t.wear(trueThief)},
+      {title:'Thing Clue',en:t.item(trueThief)}
     ];
-    const evidence卡片 = [];
-    suspects.forEach(s => {
-      evidence卡片.push(
-        { title:'Full Evidence', en:`${s.display} was near the ${s.place}, wore ${s.wear}, and had ${s.item}.` },
-        { title:'Place Evidence', en:`${s.display} was near the ${s.place}.` },
-        { title:'Clothes Evidence', en:`${s.display} wore ${s.wear}.` },
-        { title:'Thing Evidence', en:`${s.display} had ${s.item}.` }
+    others.forEach(s=>{
+      cards.push(
+        {title:'Not Place',en:t.negPlace(s)},
+        {title:'Not Clothes',en:t.negWear(s)},
+        {title:'Not Thing',en:t.negItem(s)},
+        {title:'Maybe Clue',en:`Maybe the thief is connected to the ${s.place}?`}
       );
     });
-    clueDeck = shuffle(clue卡片);
-    evidenceDeck = shuffle(evidence卡片);
+    return uniqueCards(cards);
   }
-
-  function createTeam(name) {
-    return { name, clues:0, evidence:0, badges:0, shields:0, skipTurns:0, clueNotes:[], evidenceNotes:[] };
-  }
-  function canFinalChase(team) { return team.clues >= 3 && team.evidence >= 2 && team.badges >= 1; }
-  function getAssetCounts(team) { return `●${team.clues} / ◆${team.evidence} / ★${team.badges} / □${team.shields}`; }
-  function drawFromDeck(type) {
-    if (type === 'clue') { if (clueDeck.length === 0) buildCaseDecks(false); return clueDeck.shift(); }
-    if (evidenceDeck.length === 0) buildCaseDecks(false);
-    return evidenceDeck.shift();
-  }
-
-  function startSetupGame() {
-    const selectedNames = getSelectedSuspectNames();
-    if (selectedNames.length < 4) {
-      alert('请至少选择 4 名嫌疑人，这样孩子才有推理空间哦！');
-      return;
-    }
-    const count = parseInt(teamCountSelect.value);
-    teams = [];
-    for (let i = 0; i < count; i++) {
-      const nameInput = document.getElementById(`team-name-${i}`);
-      teams.push(createTeam(nameInput.value.trim() || `侦探队 ${i + 1}`));
-    }
-    suspects = makeSuspectsForRound(selectedNames);
-    trueThief = null;
-    timerMax = selectedNames.length >= 10 ? 12 : (count <= 3 ? 8 : 10);
-    timerLeft = timerMax;
-    buildCaseDecks();
-    setupGame();
-  }
-
-  function setupGame() {
-    setupScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
-    gameScreen.classList.add('flex');
-    positionWheelSymbols();
-    currentPlayerIndex = -1;
-    updateUI();
-    actionPrompt.textContent = 'Click 开始游戏 to begin the case!';
-    rulesContainer.innerHTML = '<p class="text-lg sm:text-xl font-black drop-shadow">目标：收集 ● Clue x3、◆ Evidence x2、★ Badge 徽章 x1 后开启 Final Chase。</p>';
-  }
-
-  function updateTimerUI() {
-    timerDots.innerHTML = '';
-    for (let i = 0; i < timerMax; i++) {
-      const dot = document.createElement('span');
-      dot.className = 'timer-dot' + (i >= timerLeft ? ' off' : '');
-      timerDots.appendChild(dot);
-    }
-    timerText.textContent = `${timerLeft}/${timerMax}`;
-  }
-
-  function updateUI() {
-    updateTimerUI();
-    teamsInfoContainer.innerHTML = '';
-    const table = document.createElement('table');
-    table.className = 'teams-table text-base sm:text-lg';
-    let headerHtml = '<thead><tr><th class="w-1/4">调查板</th>';
-    teams.forEach((team, index) => {
-      const skipText = team.skipTurns > 0 ? ' <span class="text-xs text-red-600">暂停</span>' : '';
-      headerHtml += `<th class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.name}${skipText}</th>`;
+  function makeAllEvidenceCards(){
+    const t=tenseTexts[chosenTense];
+    const cards=[];
+    identities.forEach(s=>{
+      cards.push(
+        {title:'Evidence',en:t.ePlace(s)},
+        {title:'Evidence',en:t.eWear(s)},
+        {title:'Evidence',en:t.eItem(s)}
+      );
     });
-    headerHtml += '</tr></thead>';
-    let bodyHtml = '<tbody>';
-    bodyHtml += '<tr><td class="asset-name"><span class="asset-symbol">●</span> Clue</td>';
-    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.clues} / 3</td>`);
-    bodyHtml += '</tr><tr><td class="asset-name"><span class="asset-symbol">◆</span> Evidence</td>';
-    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.evidence} / 2</td>`);
-    bodyHtml += '</tr><tr><td class="asset-name"><span class="asset-symbol">★</span> Badge 徽章</td>';
-    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.badges} / 1</td>`);
-    bodyHtml += '</tr><tr><td class="asset-name"><span class="asset-symbol">□</span> Shield 防偷</td>';
-    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">${team.shields} / 2</td>`);
-    bodyHtml += '</tr><tr><td class="asset-name">卡片</td>';
-    teams.forEach((team, index) => bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">Clue ${team.clueNotes.length}<br>Evidence ${team.evidenceNotes.length}</td>`);
-    bodyHtml += '</tr><tr><td>操作</td>';
-    teams.forEach((team, index) => {
-      bodyHtml += `<td class="${index === currentPlayerIndex ? 'active-col' : ''}">
-        <div class="flex flex-col gap-2 items-center">
-          <button class="notebook-btn bg-slate-700 hover:bg-slate-800 text-white font-black py-1 px-3 rounded-md text-sm btn" data-index="${index}">案件笔记</button>
-          <button class="buy-badge-btn bg-yellow-500 hover:bg-yellow-600 text-white font-black py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${team.evidence < 3 ? 'disabled' : ''}>3◆ 兑换 ★</button>
-          <button class="final-btn bg-red-600 hover:bg-red-700 text-white font-black py-1 px-3 rounded-md text-sm btn" data-index="${index}" ${!canFinalChase(team) ? 'disabled' : ''}>Final Chase</button>
-        </div>
-      </td>`;
-    });
-    bodyHtml += '</tr></tbody>';
-    table.innerHTML = headerHtml + bodyHtml;
-    teamsInfoContainer.appendChild(table);
-
-    const suspectBox = document.createElement('div');
-    suspectBox.className = 'mt-4 p-3 rounded-2xl bg-white/85 border-2 border-slate-700 text-center';
-    suspectBox.innerHTML = `<div class="font-black text-slate-800 mb-2">本局嫌疑人身份卡 Suspect Cards</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs max-h-72 overflow-y-auto pr-1">${suspects.map(s => `<div class="p-3 rounded-xl bg-slate-100 border border-slate-300 text-left"><div class="font-black text-base text-slate-800 mb-1">${s.display}</div><div>📍 ${s.place}</div><div>👕 ${s.wear}</div><div>🎒 ${s.item}</div></div>`).join('')}</div><div class="mt-2 text-xs text-slate-500">每局地点、衣服、物品都会重新随机；真正的小偷不会公开，需要根据 Clue / Evidence 推理。</div>`;
-    teamsInfoContainer.appendChild(suspectBox);
-
-    document.querySelectorAll('.buy-badge-btn').forEach(btn => btn.addEventListener('click', e => buyBadge(parseInt(e.currentTarget.dataset.index))));
-    document.querySelectorAll('.final-btn').forEach(btn => btn.addEventListener('click', e => openFinalChase(parseInt(e.currentTarget.dataset.index))));
-    document.querySelectorAll('.notebook-btn').forEach(btn => btn.addEventListener('click', e => openNotebook(parseInt(e.currentTarget.dataset.index))));
+    return uniqueCards(cards);
   }
-
-  function showModal(modal) {
-    modalOverlay.classList.remove('hidden');
-    modalOverlay.classList.add('flex');
-    modalOverlay.style.display = 'flex';
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+  function rebuildClueDeck(allowUsed=false){
+    let cards = makeAllClueCards();
+    if(!allowUsed) cards = cards.filter(card => !usedClueKeys.has(card.en));
+    clueDeck = shuffle(cards);
   }
-  function closeAllModals(hideOverlayOrEvent=true) {
-    const hideOverlay = hideOverlayOrEvent !== false;
-    [victoryModal, stealModal, choiceModal, caseCardModal, finalModal, notebookModal].forEach(m => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      m.style.display = 'none';
-    });
-    if (hideOverlay) {
-      modalOverlay.style.display = 'none';
-      modalOverlay.classList.add('hidden');
-      modalOverlay.classList.remove('flex');
+  function rebuildEvidenceDeck(allowUsed=false){
+    let cards = makeAllEvidenceCards();
+    if(!allowUsed) cards = cards.filter(card => !usedEvidenceKeys.has(card.en));
+    evidenceDeck = shuffle(cards);
+  }
+  function buildCaseDecks(){
+    rebuildClueDeck(false);
+    rebuildEvidenceDeck(false);
+  }
+  function drawFromDeck(type){
+    if(type==='clue'){
+      if(!clueDeck.length) rebuildClueDeck(false);
+      if(!clueDeck.length){ usedClueKeys.clear(); rebuildClueDeck(true); }
+      const card = clueDeck.shift();
+      if(card) usedClueKeys.add(card.en);
+      return card;
     }
+    if(!evidenceDeck.length) rebuildEvidenceDeck(false);
+    if(!evidenceDeck.length){ usedEvidenceKeys.clear(); rebuildEvidenceDeck(true); }
+    const card = evidenceDeck.shift();
+    if(card) usedEvidenceKeys.add(card.en);
+    return card;
   }
 
-  function openNotebook(teamIndex) {
-    const team = teams[teamIndex];
-    notebookTitle.textContent = `${team.name} 的案件笔记`;
-    notebookSummary.innerHTML = `Items: ${getAssetCounts(team)}<br>Clue 卡片 ${team.clueNotes.length}, Evidence 卡片 ${team.evidenceNotes.length}`;
-    notebookClues.innerHTML = team.clueNotes.length ? team.clueNotes.map((card,i) => `
-      <div class="note-card">
-        <div class="mb-1"><span class="tag bg-blue-100 text-blue-700">Clue ${i+1}</span> <span class="text-slate-500 text-xs">${card.title}</span></div>
-        <div class="font-black">${card.en}</div>
-      </div>`).join('') : '<div class="text-slate-500 text-sm">还没有 Clue Card。</div>';
-    notebookEvidence.innerHTML = team.evidenceNotes.length ? team.evidenceNotes.map((card,i) => `
-      <div class="note-card evidence-card">
-        <div class="mb-1"><span class="tag bg-amber-100 text-amber-700">Evidence ${i+1}</span> <span class="text-slate-500 text-xs">${card.title}</span></div>
-        <div class="font-black">${card.en}</div>
-      </div>`).join('') : '<div class="text-slate-500 text-sm">还没有 Evidence Card。</div>';
-    showModal(notebookModal);
-  }
+  function startSetupGame(){setupWarning.textContent='';if(selected.size<3){setupWarning.textContent='请至少选择 3 个嫌疑人，不然推理空间太小。';return;}chosenTense=document.querySelector('input[name="tense"]:checked').value;teams=[];const count=parseInt(teamCountSelect.value,10);for(let i=0;i<count;i++){const input=$(`team-name-${i}`);teams.push(createTeam(input.value.trim()||`侦探队 ${i+1}`));}timerMax=count<=3?8:10;timerLeft=timerMax;usedClueKeys.clear();usedEvidenceKeys.clear();buildIdentities();buildCaseDecks();setupGame();}
+  function setupGame(){setupScreen.classList.add('hidden');gameScreen.classList.add('flex');positionWheelSymbols();currentPlayerIndex=-1;updateUI();actionPrompt.textContent='Click 开始游戏 to begin the case!';rulesContainer.textContent=`本局使用：${tenseTexts[chosenTense].title}。目标：收集 ● Clue x3、◆ Evidence x2、★ Badge x1 后开启 Final Chase。`;}
+  function updateTimerUI(){timerDots.innerHTML='';for(let i=0;i<timerMax;i++){const dot=document.createElement('span');dot.className='timer-dot'+(i>=timerLeft?' off':'');timerDots.appendChild(dot);}timerText.textContent=`${timerLeft}/${timerMax}`;}
 
-  function startNextTurn() {
-    let safety = 0;
-    do {
-      currentPlayerIndex = (currentPlayerIndex + 1) % teams.length;
-      safety++;
-      if (teams[currentPlayerIndex].skipTurns > 0) {
-        teams[currentPlayerIndex].skipTurns -= 1;
-        actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】进入 Dark Room，暂停一轮！`;
-        updateUI();
-      } else break;
-    } while (safety <= teams.length + 2);
-    updateUI();
-    actionPrompt.textContent = `轮到【${teams[currentPlayerIndex].name}】答题。答对后才能转盘。`;
-    spinBtn.disabled = true;
-    isSpinning = false;
-    correctBtn.disabled = false;
-    incorrectBtn.disabled = false;
-    answerControls.classList.remove('hidden');
-    answerControls.classList.add('flex');
+  function updateUI(){updateTimerUI();teamsInfoContainer.innerHTML='';const table=document.createElement('table');table.className='teams-table';let html='<thead><tr><th>调查板</th>';teams.forEach((team,i)=>{html+=`<th class="${i===currentPlayerIndex?'active-col':''}">${esc(team.name)}${team.skipTurns>0?' <span style="color:#dc2626;font-size:12px">暂停</span>':''}</th>`;});html+='</tr></thead><tbody>';
+    [['● Clue','clues','3'],['◆ Evidence','evidence','2'],['★ Badge 徽章','badges','1'],['□ Shield 防偷','shields','2']].forEach(row=>{html+=`<tr><td class="asset-name">${row[0]}</td>`;teams.forEach((team,i)=>{html+=`<td class="${i===currentPlayerIndex?'active-col':''}">${team[row[1]]} / ${row[2]}</td>`;});html+='</tr>';});
+    html+='<tr><td class="asset-name">卡片</td>';teams.forEach((team,i)=>{html+=`<td class="${i===currentPlayerIndex?'active-col':''}">Clue ${team.clueNotes.length}<br>Evidence ${team.evidenceNotes.length}</td>`;});html+='</tr><tr><td class="asset-name">操作</td>';
+    teams.forEach((team,i)=>{html+=`<td class="${i===currentPlayerIndex?'active-col':''}"><button class="mini-btn slate notebook-btn" data-index="${i}">案件笔记</button><button class="mini-btn amber buy-badge-btn" data-index="${i}" ${team.evidence<3?'disabled':''}>3◆ 兑换 ★</button><button class="mini-btn red final-btn" data-index="${i}" ${!canFinalChase(team)?'disabled':''}>Final Chase</button></td>`;});html+='</tr></tbody>';table.innerHTML=html;teamsInfoContainer.appendChild(table);
+    teamsInfoContainer.querySelectorAll('.notebook-btn').forEach(btn=>btn.onclick=e=>openNotebook(parseInt(e.currentTarget.dataset.index,10)));
+    teamsInfoContainer.querySelectorAll('.buy-badge-btn').forEach(btn=>btn.onclick=e=>buyBadge(parseInt(e.currentTarget.dataset.index,10)));
+    teamsInfoContainer.querySelectorAll('.final-btn').forEach(btn=>btn.onclick=e=>openFinalChase(parseInt(e.currentTarget.dataset.index,10)));
+    suspectPublicBox.innerHTML=`<h3>本局嫌疑人 Suspects</h3><div class="game-suspects">${identities.map(s=>`<div class="game-name">${esc(s.name)}</div>`).join('')}</div><div class="small-note">只公开嫌疑人姓名；地点、衣服、物品需要根据 Clue / Evidence 推理。</div>`;
   }
+  function showModal(modal){modalOverlay.style.display='flex';[victoryModal,stealModal,choiceModal,caseCardModal,finalModal,notebookModal].forEach(m=>m.style.display='none');modal.style.display='block';}
+  function closeAllModals(){modalOverlay.style.display='none';[victoryModal,stealModal,choiceModal,caseCardModal,finalModal,notebookModal].forEach(m=>m.style.display='none');}
 
-  function awardClueCard(teamIndex, silent=false) {
-    const team = teams[teamIndex];
-    const card = drawFromDeck('clue');
-    team.clues += 1;
-    team.clueNotes.push(card);
-    updateUI();
-    if (!silent) actionPrompt.innerHTML = `【${team.name}】获得 1 张 Clue Card！<br><span class="text-base">打开案件笔记查看英文线索。</span>`;
-    playSound('E4');
-    return true;
-  }
-  function awardEvidenceCard(teamIndex, silent=false) {
-    const team = teams[teamIndex];
-    const card = drawFromDeck('evidence');
-    team.evidence += 1;
-    team.evidenceNotes.push(card);
-    updateUI();
-    if (!silent) actionPrompt.innerHTML = `${team.name} gets one Evidence Card!<br><span class="text-base">Open 案件笔记 to read it.</span>`;
-    playCoinSound();
-    return true;
-  }
-  function addShield(teamIndex) {
-    const team = teams[teamIndex];
-    if (team.shields >= 2) { actionPrompt.textContent = `${team.name} already has two Shield 防偷 卡片. Get one Clue Card instead!`; return awardClueCard(teamIndex, true); }
-    team.shields += 1; updateUI(); playSound('G5'); return true;
-  }
+  function startNextTurn(){let safety=0;do{currentPlayerIndex=(currentPlayerIndex+1)%teams.length;safety++;if(teams[currentPlayerIndex].skipTurns>0){teams[currentPlayerIndex].skipTurns-=1;actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】进入 Dark Room，暂停一轮！`;updateUI();}else break;}while(safety<=teams.length+2);updateUI();actionPrompt.textContent=`轮到【${teams[currentPlayerIndex].name}】答题。答对后才能转盘。`;spinBtn.disabled=true;isSpinning=false;correctBtn.disabled=false;incorrectBtn.disabled=false;answerControls.style.display='grid';}
+  function awardClueCard(teamIndex,silent=false){const team=teams[teamIndex];const card=drawFromDeck('clue');if(!card){actionPrompt.textContent='线索卡已用完，请重新开局。';return false;}team.clues++;team.clueNotes.push(card);updateUI();if(!silent)actionPrompt.innerHTML=`【${esc(team.name)}】获得 1 张 Clue Card！<br><span style="font-size:14px;color:#64748b">打开案件笔记查看英文线索。</span>`;playSound();return true;}
+  function awardEvidenceCard(teamIndex,silent=false){const team=teams[teamIndex];const card=drawFromDeck('evidence');if(!card){actionPrompt.textContent='证据卡已用完，请重新开局。';return false;}team.evidence++;team.evidenceNotes.push(card);updateUI();if(!silent)actionPrompt.innerHTML=`【${esc(team.name)}】获得 1 张 Evidence Card！<br><span style="font-size:14px;color:#64748b">Open 案件笔记 to read it.</span>`;playSound();return true;}
+  function addShield(teamIndex){const team=teams[teamIndex];if(team.shields>=2){actionPrompt.textContent=`${team.name} already has two Shield 防偷 Cards. Get one Clue Card instead!`;return awardClueCard(teamIndex,true);}team.shields++;updateUI();playSound();return true;}
+  function removeRandomCard(team,type){if(type==='clues'&&team.clueNotes.length)return team.clueNotes.splice(Math.floor(Math.random()*team.clueNotes.length),1)[0];if(type==='evidence'&&team.evidenceNotes.length)return team.evidenceNotes.splice(Math.floor(Math.random()*team.evidenceNotes.length),1)[0];return null;}
+  function checkReadyAndSwitch(shouldSwitch){updateUI();const team=teams[currentPlayerIndex];if(team&&canFinalChase(team))actionPrompt.textContent=`【${team.name}】已满足条件！可以点击 Final Chase，也可以继续调查。`;if(shouldSwitch)setTimeout(startNextTurn,1200);}
 
-  function removeRandomCard(team, assetType) {
-    if (assetType === 'clues' && team.clueNotes.length > 0) return team.clueNotes.splice(Math.floor(Math.random()*team.clueNotes.length),1)[0];
-    if (assetType === 'evidence' && team.evidenceNotes.length > 0) return team.evidenceNotes.splice(Math.floor(Math.random()*team.evidenceNotes.length),1)[0];
-    return null;
-  }
+  function handleSpinResult(result){isSpinning=false;const team=teams[currentPlayerIndex];actionPrompt.innerHTML=`【${esc(team.name)}】转到了：<span style="font-size:32px">${result.symbol}</span> ${result.label}`;switch(result.result){case'clue':awardClueCard(currentPlayerIndex);setTimeout(()=>checkReadyAndSwitch(true),900);break;case'evidence':awardEvidenceCard(currentPlayerIndex);setTimeout(()=>checkReadyAndSwitch(true),900);break;case'badge':team.badges++;playSound();actionPrompt.innerHTML+='<br>Get one Detective Badge 徽章!';updateUI();setTimeout(()=>checkReadyAndSwitch(true),900);break;case'shield':addShield(currentPlayerIndex);actionPrompt.innerHTML+='<br>Get one Shield 防偷 Card!';updateUI();setTimeout(()=>checkReadyAndSwitch(true),900);break;case'thief':handleThief();break;case'mystery':drawCaseCard();break;}}
+  function handleThief(){actionPrompt.innerHTML+='<br>小偷干扰！';stealOptions.innerHTML='';let hasTargets=false;teams.forEach((targetTeam,targetIndex)=>{if(targetIndex===currentPlayerIndex)return;[['evidence','Evidence','amber'],['clues','Clue','green'],['badges','Badge 徽章','blue']].forEach(([assetType,label,cls])=>{if(targetTeam[assetType]>0){if(assetType==='clues'&&targetTeam.clues<=1)return;hasTargets=true;const btn=document.createElement('button');btn.className=`action-btn ${cls}`;btn.textContent=`从【${targetTeam.name}】截取 1 张 ${label}${targetTeam.shields>0?'（Shield 防偷）':''}`;btn.onclick=()=>performSteal(targetIndex,assetType);stealOptions.appendChild(btn);}});});if(!hasTargets){actionPrompt.textContent='没有可以截取的卡片，继续调查！';setTimeout(()=>checkReadyAndSwitch(true),1000);return;}const cancel=document.createElement('button');cancel.className='action-btn slate';cancel.textContent='放弃截取';cancel.onclick=()=>{closeAllModals();checkReadyAndSwitch(true);};stealOptions.appendChild(cancel);showModal(stealModal);}
+  function performSteal(targetIndex,assetType){const target=teams[targetIndex], current=teams[currentPlayerIndex];closeAllModals();if(target.shields>0){target.shields--;actionPrompt.textContent=`${target.name}'s Shield 防偷 Card works!`;playSound();updateUI();}else{target[assetType]--;current[assetType]++;if(assetType==='clues'){const card=removeRandomCard(target,'clues');if(card)current.clueNotes.push(card);}if(assetType==='evidence'){const card=removeRandomCard(target,'evidence');if(card)current.evidenceNotes.push(card);}actionPrompt.textContent=`【${current.name}】从【${target.name}】截取了 1 张 ${assetType==='clues'?'Clue':assetType==='evidence'?'Evidence':'Badge 徽章'}！`;playSound();updateUI();}setTimeout(()=>checkReadyAndSwitch(true),1000);}
 
-  function startExtraSpinQuestion() {
-    isExtraSpinQuestion = true;
-    actionPrompt.textContent = `【${teams[currentPlayerIndex].name}】请再答一题，答对可再转一次！`;
-    answerControls.classList.remove('hidden');
-    answerControls.classList.add('flex');
-    correctBtn.disabled = false;
-    incorrectBtn.disabled = false;
-  }
-
-  const case卡片 = [
-    { symbol:'🔦', name:'Flashlight Card 手电筒', text:'获得 1 张 Clue Card。', weight:24, action:() => awardClueCard(currentPlayerIndex, true) },
-    { symbol:'🐕', name:'Police Dog Card 警犬', text:'获得 1 张 Evidence Card。', weight:22, action:() => awardEvidenceCard(currentPlayerIndex, true) },
-    { symbol:'🏃', name:'Fast Chase Card 快速追踪', text:'再答一题，答对可以再转一次。', weight:18, action:() => { startExtraSpinQuestion(); return false; } },
-    { symbol:'🌑', name:'Dark Room Card 黑房间', text:'选择一队，让他们暂停一轮。', weight:12, action:() => { chooseTeamToSkip(); return false; } },
-    { symbol:'👣', name:'Footprint Card 脚印', text:'查看其他队伍的一张 Clue Card。', weight:10, action:() => { chooseTeamToPeek(); return false; } },
-    { symbol:'⭐', name:'Lucky Star Card 幸运星', text:'获得 1 枚 Badge。', weight:10, action:() => { teams[currentPlayerIndex].badges += 1; playSound('A5'); return true; } },
-    { symbol:'🛡', name:'Shield 防偷 Card', text:'Get one shield card.', weight:4, action:() => addShield(currentPlayerIndex) }
+  function startExtraSpinQuestion(){isExtraSpinQuestion=true;actionPrompt.textContent=`【${teams[currentPlayerIndex].name}】请再答一题，答对可再转一次！`;answerControls.style.display='grid';correctBtn.disabled=false;incorrectBtn.disabled=false;}
+  const caseCards=[
+    {symbol:'🔦',name:'Flashlight Card 手电筒',text:'获得 1 张 Clue Card。',weight:24,action:()=>awardClueCard(currentPlayerIndex,true)},
+    {symbol:'🐕',name:'Police Dog Card 警犬',text:'获得 1 张 Evidence Card。',weight:22,action:()=>awardEvidenceCard(currentPlayerIndex,true)},
+    {symbol:'🏃',name:'Fast Chase Card 快速追踪',text:'再答一题，答对可以再转一次。',weight:18,action:()=>{startExtraSpinQuestion();return false;}},
+    {symbol:'🌑',name:'Dark Room Card 黑房间',text:'选择一队，让他们暂停一轮。',weight:12,action:()=>{chooseTeamToSkip();return false;}},
+    {symbol:'👣',name:'Footprint Card 脚印',text:'查看其他队伍的一张 Clue Card。',weight:10,action:()=>{chooseTeamToPeek();return false;}},
+    {symbol:'⭐',name:'Lucky Star Card 幸运星',text:'获得 1 枚 Badge。',weight:10,action:()=>{teams[currentPlayerIndex].badges++;playSound();return true;}},
+    {symbol:'🛡',name:'Shield 防偷 Card',text:'Get one shield card.',weight:4,action:()=>addShield(currentPlayerIndex)}
   ];
+  function drawCaseCard(){const card=pickWeightedItem(caseCards);playSound();caseCardContent.innerHTML=`<div style="font-size:52px;margin-bottom:8px">${card.symbol}</div><div style="font-size:22px;font-weight:900;margin-bottom:8px">${card.name}</div><p>${card.text}</p>`;caseCardOkBtn.onclick=()=>{closeAllModals();const cont=card.action();updateUI();if(cont&&!isExtraSpinQuestion)setTimeout(()=>checkReadyAndSwitch(true),700);};showModal(caseCardModal);}
+  function chooseTeamToSkip(){choiceTitle.textContent='Dark Room Card 黑房间';choicePrompt.textContent='选择一队，让他们暂停一轮。';choiceOptions.innerHTML='';teams.forEach((team,i)=>{if(i===currentPlayerIndex)return;const btn=document.createElement('button');btn.className='action-btn indigo';btn.textContent=`让【${team.name}】暂停一轮`;btn.onclick=()=>{teams[i].skipTurns++;closeAllModals();actionPrompt.textContent=`【${team.name}】下一轮暂停！`;updateUI();setTimeout(()=>checkReadyAndSwitch(true),900);};choiceOptions.appendChild(btn);});showModal(choiceModal);}
+  function chooseTeamToPeek(){choiceTitle.textContent='Footprint Card 脚印';choicePrompt.textContent='选择一队，查看他们的一张 Clue Card。';choiceOptions.innerHTML='';let hasTarget=false;teams.forEach((team,i)=>{if(i===currentPlayerIndex||!team.clueNotes.length)return;hasTarget=true;const btn=document.createElement('button');btn.className='action-btn purple';btn.textContent=`查看【${team.name}】的 Clue Card`;btn.onclick=()=>{const card=pick(team.clueNotes);closeAllModals();actionPrompt.innerHTML=`<b>【${esc(team.name)}】的 Clue Card：</b><br>${esc(card.en)}`;setTimeout(()=>checkReadyAndSwitch(true),1800);};choiceOptions.appendChild(btn);});if(!hasTarget){closeAllModals();actionPrompt.textContent='没有可查看的 Clue Card，改为获得 1 张 Clue Card！';awardClueCard(currentPlayerIndex,true);setTimeout(()=>checkReadyAndSwitch(true),1000);return;}showModal(choiceModal);}
+  function buyBadge(teamIndex){const team=teams[teamIndex];if(team.evidence>=3){team.evidence-=3;team.badges++;team.evidenceNotes.splice(0,Math.min(3,team.evidenceNotes.length));playSound();actionPrompt.textContent=`${team.name} trades 3 Evidence Cards for 1 Detective Badge 徽章!`;updateUI();checkReadyAndSwitch(false);}}
+  function openNotebook(teamIndex){const team=teams[teamIndex];notebookTitle.textContent=`${team.name} 的案件笔记`;notebookSummary.innerHTML=`Items: ${getAssetCounts(team)}<br>Clue 卡片 ${team.clueNotes.length}, Evidence 卡片 ${team.evidenceNotes.length}`;notebookClues.innerHTML=team.clueNotes.length?team.clueNotes.map((card,i)=>`<div class="note-card"><div><span class="tag">Clue ${i+1}</span> <span style="font-size:12px;color:#64748b">${esc(card.title)}</span></div><div style="font-weight:900;margin-top:5px">${esc(card.en)}</div></div>`).join(''):'<div class="small-note">还没有 Clue Card。</div>';notebookEvidence.innerHTML=team.evidenceNotes.length?team.evidenceNotes.map((card,i)=>`<div class="note-card evi"><div><span class="tag evi">Evidence ${i+1}</span> <span style="font-size:12px;color:#64748b">${esc(card.title)}</span></div><div style="font-weight:900;margin-top:5px">${esc(card.en)}</div></div>`).join(''):'<div class="small-note">还没有 Evidence Card。</div>';showModal(notebookModal);}
 
-  function handleSpinResult(result) {
-    isSpinning = false;
-    const team = teams[currentPlayerIndex];
-    actionPrompt.innerHTML = `【${team.name}】转到了：<span class="text-3xl sm:text-4xl font-black">${result.symbol}</span> <span class="text-xl">${result.label}</span>`;
-    switch (result.result) {
-      case 'clue': awardClueCard(currentPlayerIndex); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-      case 'evidence': awardEvidenceCard(currentPlayerIndex); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-      case 'badge': team.badges += 1; playSound('A5'); actionPrompt.innerHTML += '<br>Get one Detective Badge 徽章!'; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-      case 'shield': addShield(currentPlayerIndex); actionPrompt.innerHTML += '<br>Get one Shield 防偷 Card!'; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1200); break;
-      case 'thief': handleThief(); break;
-      case 'mystery': drawCaseCard(); break;
-    }
-  }
+  function openFinalChase(teamIndex,forced=false){pendingFinalTeamIndex=teamIndex;const team=teams[teamIndex];const t=tenseTexts[chosenTense];finalMessage.innerHTML=`【${esc(team.name)}】进入 Final Chase！根据本局时态完成三步问答。`;const placeOpts=identities.map(s=>s.place), itemOpts=identities.map(s=>s.item);finalStepBox.innerHTML=`<div class="final-grid"><label>${esc(t.qPlace)}<select id="final-place">${placeOpts.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('')}</select></label><label>${esc(t.qItem)}<select id="final-item">${itemOpts.map(it=>`<option value="${esc(it)}">${esc(it)}</option>`).join('')}</select></label><label>${esc(t.qPerson)}<select id="final-person">${identities.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('')}</select></label></div>`;finalCancelBtn.style.display=forced?'none':'block';showModal(finalModal);}
+  function resolveFinalChase(){const team=teams[pendingFinalTeamIndex];const place=$('final-place').value, item=$('final-item').value, person=$('final-person').value;const success=place===trueThief.place&&item===trueThief.item&&person===trueThief.name;closeAllModals();if(success){victoryMessage.innerHTML=`太棒了！【${esc(team.name)}】抓到了真正的小偷！<br><span style="font-size:16px;color:#64748b">The treasure is safe now.</span>`;showModal(victoryModal);playSound();}else{if(team.evidence>0)team.evidence--;if(team.evidenceNotes.length)team.evidenceNotes.pop();actionPrompt.textContent=`Oh no! The thief runs away. ${team.name} loses one Evidence Card.`;updateUI();setTimeout(startNextTurn,1200);}}
+  function timerDown(){timerLeft=Math.max(0,timerLeft-1);updateTimerUI();if(timerLeft<=0){actionPrompt.textContent='时间到！进入 Final Chase！';setTimeout(()=>openFinalChase(getBestTeamIndex(),true),700);return true;}return false;}
+  function getBestTeamIndex(){let best=0;for(let i=1;i<teams.length;i++){const a=teams[i],b=teams[best];if(a.evidence*100+a.clues*10+a.badges>b.evidence*100+b.clues*10+b.badges)best=i;}return best;}
 
-  function handleThief() {
-    actionPrompt.innerHTML += '<br>小偷干扰！';
-    stealOptions.innerHTML = '';
-    let hasTargets = false;
-    teams.forEach((targetTeam, targetIndex) => {
-      if (targetIndex === currentPlayerIndex) return;
-      [['evidence','Evidence','bg-yellow-600 hover:bg-yellow-700'], ['clues','Clue','bg-green-600 hover:bg-green-700'], ['badges','Badge 徽章','bg-blue-600 hover:bg-blue-700']].forEach(([assetType,label,cls]) => {
-        if (targetTeam[assetType] > 0) {
-          if (assetType === 'clues' && targetTeam.clues <= 1) return;
-          hasTargets = true;
-          const btn = document.createElement('button');
-          btn.className = `block w-full ${cls} text-white font-black py-2 px-4 rounded-xl btn mb-2`;
-          const shieldText = targetTeam.shields > 0 ? ' (Shield 防偷!)' : '';
-          btn.textContent = `从【${targetTeam.name}】截取 1 张 ${label}${shieldText}`;
-          btn.onclick = () => performSteal(targetIndex, assetType);
-          stealOptions.appendChild(btn);
-        }
-      });
-    });
-    if (!hasTargets) { actionPrompt.textContent = '没有可以截取的卡片，继续调查！'; setTimeout(() => checkReadyAndSwitch(true), 1200); return; }
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'block w-full bg-slate-500 hover:bg-slate-600 text-white font-black py-2 px-4 rounded-xl btn mt-4';
-    cancelBtn.textContent = '放弃截取';
-    cancelBtn.onclick = () => { closeAllModals(); checkReadyAndSwitch(true); };
-    stealOptions.appendChild(cancelBtn);
-    showModal(stealModal);
-  }
+  teamCountSelect.onchange=updateTeamNameInputs;
+  $('select-all-btn').onclick=()=>{studentNames.forEach(n=>selected.add(n));renderSuspectButtons();};
+  $('clear-btn').onclick=()=>{selected.clear();renderSuspectButtons();};
+  $('random-6-btn').onclick=()=>setRandomSuspects(6);
+  $('random-8-btn').onclick=()=>setRandomSuspects(8);
+  suspectFilter.oninput=renderSuspectButtons;
+  startGameBtn.onclick=startSetupGame;
+  startRoundBtn.onclick=()=>{startRoundBtn.classList.add('hidden');startNextTurn();};
+  correctBtn.onclick=()=>{correctBtn.disabled=true;incorrectBtn.disabled=true;if(isExtraSpinQuestion){isExtraSpinQuestion=false;actionPrompt.textContent='回答正确！请再次转盘。';}else{actionPrompt.textContent='回答正确！请转动转盘。';}answerControls.style.display='none';spinBtn.disabled=false;playSound();};
+  incorrectBtn.onclick=()=>{correctBtn.disabled=true;incorrectBtn.disabled=true;answerControls.style.display='none';isExtraSpinQuestion=false;playSound();const ended=timerDown();if(!ended){actionPrompt.textContent=`回答错误！午夜倒计时减少 1 格。(${timerLeft}/${timerMax})`;setTimeout(startNextTurn,1000);}};
+  spinBtn.onclick=()=>{if(isSpinning)return;isSpinning=true;spinBtn.disabled=true;const layout=getWeightedLayout(wheelSections);const result=pickWeightedItem(layout);const pad=Math.min(3,Math.max(0,(result.endAngle-result.startAngle)*.08));const win=result.startAngle+pad+Math.random()*((result.endAngle-result.startAngle)-pad*2);const desired=(360-win)%360;const current=((currentWheelRotation%360)+360)%360;const delta=(desired-current+360)%360;currentWheelRotation+=(Math.floor(Math.random()*4)+4)*360+delta;requestAnimationFrame(()=>{wheel.style.transform=`rotate(${currentWheelRotation}deg) translateZ(0)`;});setTimeout(()=>handleSpinResult(result),3100);};
+  finalSubmitBtn.onclick=resolveFinalChase;
+  finalCancelBtn.onclick=closeAllModals;
+  notebookCloseBtn.onclick=closeAllModals;
+  modalOverlay.onclick=e=>{if(e.target===modalOverlay&&victoryModal.style.display!=='block')closeAllModals();};
+  backToSetupBtn.onclick=()=>location.reload();
+  window.addEventListener('resize',positionWheelSymbols);
 
-  function performSteal(targetIndex, assetType) {
-    const target = teams[targetIndex];
-    const current = teams[currentPlayerIndex];
-    closeAllModals();
-    if (target.shields > 0) {
-      target.shields -= 1;
-      actionPrompt.textContent = `${target.name}'s Shield 防偷 Card works!`;
-      playSound('F4'); updateUI();
-    } else {
-      const labels = { clues:'Clue', evidence:'Evidence', badges:'Badge 徽章' };
-      target[assetType] -= 1;
-      current[assetType] += 1;
-      if (assetType === 'clues') { const card = removeRandomCard(target, 'clues'); if (card) current.clueNotes.push(card); }
-      if (assetType === 'evidence') { const card = removeRandomCard(target, 'evidence'); if (card) current.evidenceNotes.push(card); }
-      actionPrompt.textContent = `【${current.name}】从【${target.name}】截取了 1 张 ${labels[assetType]}！`;
-      playSound('C3'); if (assetType === 'evidence') playCoinSound(); updateUI();
-    }
-    setTimeout(() => checkReadyAndSwitch(true), 1200);
-  }
-
-  function drawCaseCard() {
-    const card = pickWeightedItem(case卡片);
-    playSound('B4');
-    caseCardContent.innerHTML = `<div class="text-5xl mb-3 font-black">${card.symbol}</div><div class="font-black mb-2 text-xl">${card.name}</div><div class="text-lg">${card.text}</div>`;
-    showModal(caseCardModal);
-    caseCardOkBtn.onclick = () => {
-      closeAllModals();
-      const shouldContinue = card.action();
-      updateUI();
-      if (shouldContinue && !isExtraSpinQuestion) setTimeout(() => checkReadyAndSwitch(true), 800);
-    };
-  }
-
-  function chooseTeamToSkip() {
-    choiceTitle.textContent = 'Dark Room Card 黑房间';
-    choicePrompt.textContent = '选择一队，让他们暂停一轮。';
-    choiceOptions.innerHTML = '';
-    let hasOtherTeams = false;
-    teams.forEach((team, index) => {
-      if (index === currentPlayerIndex) return;
-      hasOtherTeams = true;
-      const btn = document.createElement('button');
-      btn.className = 'block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2 px-4 rounded-xl btn mb-2';
-      btn.textContent = `让【${team.name}】暂停一轮`;
-      btn.onclick = () => { teams[index].skipTurns += 1; closeAllModals(); actionPrompt.textContent = `【${team.name}】下一轮暂停！`; updateUI(); setTimeout(() => checkReadyAndSwitch(true), 1000); };
-      choiceOptions.appendChild(btn);
-    });
-    if (!hasOtherTeams) { actionPrompt.textContent = '没有可以选择的队伍。'; setTimeout(() => checkReadyAndSwitch(true), 1000); return; }
-    showModal(choiceModal);
-  }
-
-  function chooseTeamToPeek() {
-    choiceTitle.textContent = 'Footprint Card 脚印';
-    choicePrompt.textContent = '选择一队，查看他们的一张 Clue Card。';
-    choiceOptions.innerHTML = '';
-    let hasTarget = false;
-    teams.forEach((team, index) => {
-      if (index === currentPlayerIndex || team.clueNotes.length === 0) return;
-      hasTarget = true;
-      const btn = document.createElement('button');
-      btn.className = 'block w-full bg-purple-600 hover:bg-purple-700 text-white font-black py-2 px-4 rounded-xl btn mb-2';
-      btn.textContent = `查看【${team.name}】的 Clue Card`;
-      btn.onclick = () => {
-        const card = team.clueNotes[Math.floor(Math.random()*team.clueNotes.length)];
-        closeAllModals();
-        actionPrompt.innerHTML = `<b>【${team.name}】的 Clue Card：</b><br>${card.en}`;
-        setTimeout(() => checkReadyAndSwitch(true), 1800);
-      };
-      choiceOptions.appendChild(btn);
-    });
-    if (!hasTarget) { closeAllModals(); actionPrompt.textContent = '没有可查看的 Clue Card，改为获得 1 张 Clue Card！'; awardClueCard(currentPlayerIndex, true); setTimeout(() => checkReadyAndSwitch(true), 1000); return; }
-    showModal(choiceModal);
-  }
-
-  function buyBadge(teamIndex) {
-    const team = teams[teamIndex];
-    if (team.evidence >= 3) {
-      team.evidence -= 3;
-      team.badges += 1;
-      if (team.evidenceNotes.length > 0) team.evidenceNotes.splice(0, Math.min(3, team.evidenceNotes.length));
-      playSound('G5');
-      actionPrompt.textContent = `${team.name} trades 3 Evidence 卡片 for 1 Detective Badge 徽章!`;
-      updateUI(); checkReadyAndSwitch(false);
-    }
-  }
-
-  function openFinalChase(teamIndex, forced=false) {
-    pendingFinalTeamIndex = teamIndex;
-    const team = teams[teamIndex];
-    finalMessage.innerHTML = `【${team.name}】进入 Final Chase！完成三步，抓到真正的小偷。`;
-    finalStepBox.innerHTML = `
-      <div class="grid gap-4 text-left">
-        <label class="block font-black text-slate-700">Step 1: Where was the thief?
-          <select id="final-place" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
-            ${suspects.map(s => `<option value="${s.place}">${s.place}</option>`).join('')}
-          </select>
-        </label>
-        <label class="block font-black text-slate-700">Step 2: What did the thief have?
-          <select id="final-item" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
-            ${suspects.map(s => `<option value="${s.item}">${s.item}</option>`).join('')}
-          </select>
-        </label>
-        <label class="block font-black text-slate-700">Step 3: Who was the thief?
-          <select id="final-person" class="mt-2 w-full p-3 rounded-xl border-2 border-slate-300 bg-white">
-            ${suspects.map(s => `<option value="${s.name}">${s.display}</option>`).join('')}
-          </select>
-        </label>
-      </div>`;
-    finalCancelBtn.style.display = forced ? 'none' : 'block';
-    showModal(finalModal);
-  }
-
-  function resolveFinalChase() {
-    const team = teams[pendingFinalTeamIndex];
-    const place = document.getElementById('final-place').value;
-    const item = document.getElementById('final-item').value;
-    const person = document.getElementById('final-person').value;
-    const success = place === trueThief.place && item === trueThief.item && person === trueThief.name;
-    closeAllModals(false);
-    if (success) {
-      victoryMessage.innerHTML = `太棒了！【${team.name}】抓到了真正的小偷：${trueThief.display}！<br><span class="text-base text-slate-600">The treasure is safe now.</span>`;
-      showModal(victoryModal);
-      playSound('C6','2n');
-    } else {
-      if (team.evidence > 0) team.evidence -= 1;
-      if (team.evidenceNotes.length > 0) team.evidenceNotes.pop();
-      closeAllModals();
-      actionPrompt.textContent = `Oh no! The thief runs away. ${team.name} loses one Evidence Card.`;
-      updateUI();
-      setTimeout(startNextTurn, 1300);
-    }
-  }
-
-  function timerDown() {
-    timerLeft = Math.max(0, timerLeft - 1);
-    updateTimerUI();
-    if (timerLeft <= 0) {
-      actionPrompt.textContent = '时间到！进入 Final Chase！';
-      const bestIndex = getBestTeamIndex();
-      setTimeout(() => openFinalChase(bestIndex, true), 800);
-      return true;
-    }
-    return false;
-  }
-  function getBestTeamIndex() {
-    let best = 0;
-    for (let i = 1; i < teams.length; i++) {
-      const a = teams[i], b = teams[best];
-      const scoreA = a.evidence*100 + a.clues*10 + a.badges;
-      const scoreB = b.evidence*100 + b.clues*10 + b.badges;
-      if (scoreA > scoreB) best = i;
-    }
-    return best;
-  }
-
-  function checkReadyAndSwitch(shouldSwitch) {
-    updateUI();
-    const readyTeam = teams[currentPlayerIndex];
-    if (readyTeam && canFinalChase(readyTeam)) actionPrompt.textContent = `【${readyTeam.name}】已满足条件！可以点击 Final Chase，也可以继续调查。`;
-    if (shouldSwitch) setTimeout(startNextTurn, 1500);
-  }
-
-  teamCountSelect.addEventListener('change', updateTeamNameInputs);
-  startGameBtn.addEventListener('click', startSetupGame);
-  startRoundBtn.addEventListener('click', () => { startRoundBtn.classList.add('hidden'); startNextTurn(); });
-
-  correctBtn.addEventListener('click', () => {
-    correctBtn.disabled = true; incorrectBtn.disabled = true;
-    if (isExtraSpinQuestion) {
-      isExtraSpinQuestion = false;
-      playSound('C5');
-      actionPrompt.textContent = '回答正确！请再次转盘。';
-      answerControls.classList.add('hidden');
-      spinBtn.disabled = false;
-    } else {
-      playSound('C5');
-      actionPrompt.textContent = '回答正确！请转动转盘。';
-      spinBtn.disabled = false;
-      answerControls.classList.add('hidden');
-    }
-  });
-  incorrectBtn.addEventListener('click', () => {
-    correctBtn.disabled = true; incorrectBtn.disabled = true;
-    answerControls.classList.add('hidden');
-    playSound('C3','4n');
-    isExtraSpinQuestion = false;
-    const ended = timerDown();
-    if (!ended) {
-      actionPrompt.textContent = `回答错误！午夜倒计时减少 1 格。(${timerLeft}/${timerMax})`;
-      setTimeout(startNextTurn, 1200);
-    }
-  });
-
-  spinBtn.addEventListener('click', () => {
-    if (isSpinning) return;
-    isSpinning = true;
-    spinBtn.disabled = true;
-    const layout = getWeightedLayout(wheelSections);
-    const result = pickWeightedItem(layout);
-    const anglePadding = Math.min(3, Math.max(0, (result.endAngle - result.startAngle) * .08));
-    const winningAngle = result.startAngle + anglePadding + Math.random() * ((result.endAngle - result.startAngle) - anglePadding * 2);
-    const desiredFinalAngle = (360 - winningAngle) % 360;
-    const currentFinalAngle = ((currentWheelRotation % 360) + 360) % 360;
-    const rotationDelta = (desiredFinalAngle - currentFinalAngle + 360) % 360;
-    const randomExtraSpins = Math.floor(Math.random() * 6) + 5;
-    currentWheelRotation += (randomExtraSpins * 360) + rotationDelta;
-    wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
-    setTimeout(() => handleSpinResult(result), 4100);
-  });
-
-  document.addEventListener('click', (e) => {
-    const closeBtn = e.target.closest('#notebook-close-btn, #final-cancel-btn');
-    if (closeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      window.forceCloseModals();
-    }
-  }, true);
-  notebookCloseBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); window.forceCloseModals(); });
-  finalCancelBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); closeAllModals(); });
-  finalSubmitBtn.addEventListener('click', resolveFinalChase);
-  modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay && !victoryModal.classList.contains('flex')) closeAllModals();
-  });
-  window.addEventListener('resize', positionWheelSymbols);
-  backToSetupBtn.addEventListener('click', () => location.reload());
-  selectAllSuspectsBtn.addEventListener('click', () => setAllSuspects(true));
-  clearSuspectsBtn.addEventListener('click', () => setAllSuspects(false));
-  random6SuspectsBtn.addEventListener('click', () => randomSelectSuspects(6));
-  random8SuspectsBtn.addEventListener('click', () => randomSelectSuspects(8));
-
-  updateTeamNameInputs();
-  renderSuspectPicker();
-};
+  updateTeamNameInputs();renderSuspectButtons();positionWheelSymbols();
+})();
 </script>
 </body>
 </html>
